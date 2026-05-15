@@ -1,10 +1,12 @@
 <script setup lang="ts">
     import { ref } from "vue";
+    import { useToast } from "vue-toastification";
 
     import logo from "@assets/logo.svg"
 
     import Input from "@components/ui/input/Input.vue";
     import Textarea from "@components/ui/textarea/Textarea.vue";
+
     import AssignTechUserModal from "@components/modals/AssignTechUserModal.vue";
     import CreateUserProductModal from "@components/modals/CreateUserProductModal.vue";
     import UpdateUserProductModal from "@components/modals/UpdateUserProductModal.vue";
@@ -16,9 +18,14 @@
     import Experience from "@components/sections/Experience.vue";
     import Product from "@components/sections/Product.vue";
 
-    import type { UserProduct } from "@type/entities";
+    import type { UserProduct, User } from "@type/entities";
 
-    const name = ref<string>("")
+    import { getAccount, updateAccount } from "@services/accountService";
+
+    import { useUserStore } from "@stores/useUserStore";
+
+    const toast = useToast()
+    const userStore = useUserStore()
 
     const isToolModal = ref<boolean>(false)
     const isTechModal = ref<boolean>(false)
@@ -27,6 +34,66 @@
     const isEducationModal = ref<boolean>(false)
     const isWorkExperienceModal = ref<boolean>(false)
 
+    // user
+    const userFormError = ref<any>()
+    const user = ref<User>({
+        id: '',
+        name: '',
+        email: '',
+        date_of_birth: new Date(),
+        gender: 'male',
+        field: '',
+        slogan: '',
+        about_me: '',
+        avatar: '',
+        facebook_link:'',
+        linkedin_link:'',
+        github_link: '',
+        location : {level1: '', level2:'', level3:'', detail:''},
+        create_at: new Date(),
+        update_at: new Date()
+    })
+
+    const handleUserSubmit = async ()=>{
+        const userFormField = {
+            name : user.value.name,
+            date_of_birth : user.value.date_of_birth,
+            gender : user.value.gender,
+            field : user.value.field,
+            slogan : user.value.slogan,
+            about_me : user.value.about_me,
+            facebook_link : user.value.facebook_link,
+            linkedin_link : user.value.linkedin_link,
+            github_link : user.value.github_link,
+            level1 : user.value.location.level1,
+            level2 : user.value.location.level2,
+            level3 : user.value.location.level3,
+            detail : user.value.location.detail,
+        }
+        try {
+            userFormError.value = ''
+            const res =  await updateAccount(userFormField)
+            userStore.updateUser(user.value)
+            toast.success(res.message)
+        } catch (error: any) {
+            userFormError.value = error.response?.data?.errors
+            toast.error(error.response?.data?.message)
+        }
+    }
+    
+    const fetchData = async () =>{
+        try {
+            const userRes = await getAccount()
+            user.value = userRes.data
+            toast.success(userRes.message)
+        } catch (error:any) {
+            toast.error(error.response?.data?.message || "get account fail")
+        }
+    }
+
+    fetchData()
+
+    // 
     const product = {
         id:'', 
         name: 'product', 
@@ -35,9 +102,11 @@
         start_date: new Date(), 
         end_date: new Date(), 
         user_id:'e01', 
-        product_techs:[{id:'p1', tech_id :'te1', title: 'java', logo:''},{id:'p2', tech_id :'te2', title: 'python', logo:''}],
+        product_techs:[{id:'p1', tech_id :'te1', name: 'java', icon:''},{id:'p2', tech_id :'te2', name: 'python', icon:''}],
         product_urls: [{ id:'r1', title: 'title', link: 'http://' }]
     } as UserProduct
+
+
 </script>
 <template>
     <div class="profile-container">
@@ -54,27 +123,33 @@
             <p class="title">Personal Information</p>
             <!-- Basic Information -->
             <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-                <Input v-model="name" placeholder="N.L.T" label="Name"/>
-                <Input v-model="name" label="Date of birth" type="date"/>
-                <Input v-model="name" label="Gender" type="radio" :optional-values="[{key: 'male', value: 'Male'},{key:'female', value: 'Female'}]"/>
+                <Input :error="userFormError?.name" v-model="user.name" placeholder="N.L.T" label="Name"/>
+                <Input :error="userFormError?.date_of_birth" v-model="user.date_of_birth" label="Date of birth" type="date"/>
+                <Input :error="userFormError?.gender" v-model="user.gender" label="Gender" type="radio" :optional-values="[{key: 'male', value: 'Male'},{key:'female', value: 'Female'}]"/>
             </div>
-            <div>{{ new Date(name) }}</div>
             <!-- Other info -->
-            <Input v-model="name" placeholder="user@gmail.com" label="Email" type="email" readonly/>
-            <Input v-model="name" placeholder="Information technology" label="Field"/>
-            <Input v-model="name" placeholder="Try and try" label="Slogan"/>
-            <Textarea v-model="name" placeholder="I am ...." label="About me"/>
+            <Input :error="userFormError?.email" v-model="user.email" placeholder="user@gmail.com" label="Email" type="email" readonly/>
+            <Input :error="userFormError?.field" v-model="user.field" placeholder="Information technology" label="Field"/>
+            <Input :error="userFormError?.slogan" v-model="user.slogan" placeholder="Try and try" label="Slogan"/>
+            <Textarea :error="userFormError?.about_me" v-model="user.about_me" placeholder="I am ...." label="About me"/>
             <!-- Address -->
             <div>
                 <p style="font-size: 21px; font-weight: bold; margin-bottom: 18px;">Address</p>
                 <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-                    <Input v-model="name" placeholder="da nang" label="Level 1"/>
-                    <Input v-model="name" placeholder="Cam le" label="Level 2"/>
-                    <Input v-model="name" placeholder="Hai Chau" label="Level 3"/>
+                    <Input :error="userFormError?.level1" v-model="user.location.level1" placeholder="da nang" label="Level 1"/>
+                    <Input :error="userFormError?.level2" v-model="user.location.level2" placeholder="Cam le" label="Level 2"/>
+                    <Input :error="userFormError?.level3" v-model="user.location.level3" placeholder="Hai Chau" label="Level 3"/>
                 </div>
-                <Input v-model="name" style="width: 100%;" placeholder="floor 2, building 2, xxx street,..." label="Detail"/>
+                <Input :error="userFormError?.detail" v-model="user.location.detail" style="width: 100%;" placeholder="floor 2, building 2, xxx street,..." label="Detail"/>
             </div>
-            <button class="btn">Edit</button>
+            <!-- Meta -->
+            <p style="font-size: 21px; font-weight: bold; margin-bottom: 18px;">Meta</p>
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                <Input :error="userFormError?.facebook_link" v-model="user.facebook_link" placeholder="Link facebook" label="Link facebook"/>
+                <Input :error="userFormError?.linkedin_link" v-model="user.linkedin_link" placeholder="Link linkedin" label="Link linkedin"/>
+                <Input :error="userFormError?.github_link" v-model="user.github_link" placeholder="Link github" label="Link github"/>
+            </div>
+            <button @click="handleUserSubmit" class="btn">Edit</button>
         </div>
         <!-- Tool -->
         <div class="box">

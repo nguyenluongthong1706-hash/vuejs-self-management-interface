@@ -1,11 +1,39 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+    import {ref } from 'vue';
+    import { useRouter } from 'vue-router';
+
+    import Input from '@components/ui/input/Input.vue';
+
+    import { useUserStore } from '@stores/useUserStore';
+
+    import type { LoginRequest } from '@type/requests';
+
+    const router = useRouter()
+    const userStore = useUserStore()
+
+    const loginRequest = ref<LoginRequest>({
+        email: '',
+        password: ''
+    })
+
+    const errors = ref<any>()
+
+    const handleSubmit = async ()=>{
+        try {
+            const res = await userStore.login(loginRequest.value)
+            router.push('/')
+        } catch (error: any) {
+            errors.value = error.response?.data?.errors
+        }
+    }
+</script>
 <template>
     <form class="auth-form">
         <h1 class="auth-title">Login</h1>
-        <input class="input" type="email" placeholder="Enter your email">
-        <input class="input" type="password" placeholder="Enter your password">
+        <Input :error="errors?.email" type="email" label="Email" placeholder="user@gmail.com" v-model="loginRequest.email"/>
+        <Input :error="errors?.password" type="password" label="Password" placeholder="..." v-model="loginRequest.password"/>
         <div class="btn-box">
-            <button class="btn">Login</button>
+            <button class="btn" type="button" @click="handleSubmit">Login</button>
         </div>
     </form>
 </template>

@@ -1,15 +1,27 @@
 <script setup lang="ts">
-    import logo from "@assets/logo.svg"
+    import { computed } from "vue";
+
+    import type { Tool, Tech } from "@type/entities";
     
-    const {size = "big", isTool = false} = defineProps<{
+    const {size = "big", isTool = false, tool, tech} = defineProps<{
         size ?: string
         isTool ? : boolean
+        tool ?: Tool
+        tech ?: Tech
     }>()
+
+    const currentObject = computed(()=>{
+        if(isTool){
+            return tool
+        }else{
+            return tech
+        }
+    })
 </script>
 <template>
     <div class="tech-item" :class="{'small-size' : size === 'small'}">
-        <img :class="{'small-size-img' : size === 'small'}" :src="logo" alt="">
-        <p :class="{'small-size-text' : size === 'small'}">Title</p>
+        <img :class="{'small-size-img' : size === 'small'}" :src="currentObject?.icon" alt="">
+        <p :class="{'small-size-text' : size === 'small'}">{{ currentObject?.name }}</p>
     </div>
 </template>
 <style scoped>

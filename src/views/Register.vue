@@ -1,13 +1,46 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+    import {ref } from 'vue';
+    import { useRouter } from 'vue-router';
+    import { useToast } from 'vue-toastification';
+
+    import Input from '@components/ui/input/Input.vue';
+
+    import { register } from '@services/authService';
+
+    import type { RegisterRequest } from '@type/requests';
+
+    const router = useRouter()
+    const toast = useToast()
+
+    const registerRequest = ref<RegisterRequest>({
+        name : '',
+        email: '',
+        password: '',
+        password_confirmation: ''
+    })
+
+    const errors = ref<any>()
+
+    const handleSubmit = async ()=>{
+        try {
+            const res = await register(registerRequest.value)
+            toast.success(res.message)
+            router.push('/auth/login')
+        } catch (error: any) {
+            errors.value = error.response?.data?.errors
+            toast.error(error.response?.data?.message || "Login fail")
+        }
+    }
+</script>
 <template>
     <form class="auth-form">
         <h1 class="auth-title">Register</h1>
-        <input class="input" type="name" placeholder="Enter your name">
-        <input class="input" type="email" placeholder="Enter your email">
-        <input class="input" type="password" placeholder="Enter your password">
-        <input class="input" type="password" placeholder="Confirm your password">
+        <Input :error="errors?.name" label="Name" placeholder="Nguyen Van B" v-model="registerRequest.name"/>
+        <Input :error="errors?.email" type="email" label="Email" placeholder="user@gmail.com" v-model="registerRequest.email"/>
+        <Input :error="errors?.password" type="password" label="Password" placeholder="..." v-model="registerRequest.password"/>
+        <Input :error="errors?.password_confirmation" type="password" label="Confirm password" placeholder="..." v-model="registerRequest.password_confirmation"/>
         <div class="btn-box">
-            <button class="btn">Login</button>
+            <button class="btn" type="button" @click="handleSubmit">Login</button>
         </div>
     </form>
 </template>
