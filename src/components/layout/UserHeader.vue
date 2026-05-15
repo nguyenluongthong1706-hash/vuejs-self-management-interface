@@ -1,5 +1,11 @@
 <script setup lang="ts">
-    const users = {name: "Nguyen Luong Thong", avatar:""}
+    import { useRoute } from 'vue-router';
+
+    import { useUserStore } from '@stores/useUserStore';
+    
+    const route = useRoute()
+    const userStore = useUserStore()
+
 </script>
 <template>
     <div class="header">
@@ -7,11 +13,11 @@
             <button>Expand</button>
         </div>
         <div class="header-info">
-            <p>Title</p>
+            <p>{{route.name }}</p>
             <div class="user-info">
-                <img v-if="users.avatar" src="" alt="">
+                <img v-if="userStore.user?.avatar" :src="userStore.user?.avatar" alt="">
                 <div v-else class="avatar h-avatar">NT</div>
-                <p>Name</p>
+                <p>{{ userStore.user?.name }}</p>
             </div>
         </div>
     </div>

@@ -1,13 +1,31 @@
+export interface User {
+    id: string
+    name: string
+    email: string
+    date_of_birth: Date
+    gender:  "male" | "female"
+    field: string
+    slogan: string
+    about_me: string
+    avatar: string
+    facebook_link: string
+    linkedin_link: string
+    github_link: string  
+    location: {level1: string, level2: string, level3: string, detail ?: string}
+    create_at: Date
+    update_at: Date
+}
+
 export interface Tool{
     id: string
-    title: string
-    logo: string
+    name: string
+    icon: string
 }
 
 export interface Tech{
     id: string
-    title: string
-    logo: string
+    name: string
+    icon: string
 }
 
 export interface UserTool{
@@ -45,8 +63,8 @@ export interface ProductUrl {
 export interface ProductTech{
     id: string
     tech_id : string
-    title : string
-    logo: string
+    name : string
+    icon: string
 }
 
 export interface UserEducation{

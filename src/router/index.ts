@@ -14,10 +14,12 @@ const routes = [
     'children': [
       {
         'path': '',
+        'name' : 'Profile',
         'component': Profile
       },
       {
         'path': 'tech-stack',
+        'name' : 'Tech Stack',
         'component': TechStack
       }
     ]
