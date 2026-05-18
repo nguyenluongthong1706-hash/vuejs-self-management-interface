@@ -1,12 +1,16 @@
 import api from "./api";
-import type { CreateTechRequest, UpdateTechRequest } from "@type/requests";
-import type { GetTechsResponse, CreateTechResponse, UpdateTechResponse, DeleteTechResponse } from "@type/responses";
+import type { CreateTechRequest, UpdateTechRequest, AssignMultipleTechRequest } from "@type/requests";
+import type { GetTechsResponse, CreateTechResponse, UpdateTechResponse, DeleteTechResponse, AssignMultipleTechResponse } from "@type/responses";
 
 export const getTechs = async () : Promise<GetTechsResponse> =>{
     const res = await api.get<GetTechsResponse>('techs')
     return res.data
 }
 
+export const getUserTechs = async () : Promise<GetTechsResponse> =>{
+    const res = await api.get<GetTechsResponse>('accounts/me/techs')
+    return res.data
+}
 
 export const createTech = async (createTechRequest: CreateTechRequest) : Promise<CreateTechResponse> =>{
     const formData = new FormData()
@@ -34,5 +38,10 @@ export const updateTech = async (id:string, updateTechRequest: UpdateTechRequest
 
 export const deleteTech = async (id: string) : Promise<DeleteTechResponse> =>{
     const res = await api.delete<DeleteTechResponse>(`techs/${id}`)
+    return res.data
+}
+
+export const assignMultipleTech = async (data: AssignMultipleTechRequest) : Promise<AssignMultipleTechResponse> =>{
+    const res = await api.post<AssignMultipleTechResponse>('accounts/me/techs', data)
     return res.data
 }

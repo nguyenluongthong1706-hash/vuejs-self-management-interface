@@ -1,5 +1,5 @@
 <script setup lang="ts">
-    import { ref } from "vue";
+    import { ref, onMounted } from "vue";
     import { useToast } from "vue-toastification";
 
     import logo from "@assets/logo.svg"
@@ -18,9 +18,20 @@
     import Experience from "@components/sections/Experience.vue";
     import Product from "@components/sections/Product.vue";
 
-    import type { UserProduct, User } from "@type/entities";
+    import type { 
+        UserProduct, 
+        User, 
+        Tool as ToolType, 
+        Tech as TechType, 
+        UserEducation as EducationType, 
+        UserWorkExperience as WorkExperienceType ,
+    } from "@type/entities";
 
     import { getAccount, updateAccount } from "@services/accountService";
+    import { getUserTools } from "@services/toolService";
+    import { getUserTechs } from "@services/techService";
+    import { getUserEducation } from "@services/educationService";
+    import { getUserWorkExperience } from "@services/workExperienceService";
 
     import { useUserStore } from "@stores/useUserStore";
 
@@ -32,7 +43,9 @@
     const isCreateUserProductModal = ref<boolean>(false)
     const isUpdateUserProductModal = ref<boolean>(false)
     const isEducationModal = ref<boolean>(false)
+    const isEditEducationModal = ref<boolean>(false)
     const isWorkExperienceModal = ref<boolean>(false)
+    const isEditWorkExperienceModal = ref<boolean>(false)
 
     // user
     const userFormError = ref<any>()
@@ -80,18 +93,41 @@
             toast.error(error.response?.data?.message)
         }
     }
-    
+
+    // user tool
+    const tools = ref<ToolType[]>([])
+
+    // user tech
+    const techs = ref<TechType[]>([])
+
+    // user Education
+    const educations = ref<EducationType[]>([])
+    const editEducation = ref<EducationType | undefined>()
+
+    // user Work Experience
+    const workExperiences = ref<WorkExperienceType[]>([])
+    const editWorkExperience = ref<WorkExperienceType | undefined>()
+
     const fetchData = async () =>{
         try {
-            const userRes = await getAccount()
+            const [userRes, toolRes, techRes, educationRes, workExperienceRes] = await Promise.all([
+                getAccount(),
+                getUserTools(),
+                getUserTechs(),
+                getUserEducation(),
+                getUserWorkExperience(),
+            ])
             user.value = userRes.data
-            toast.success(userRes.message)
+            tools.value = toolRes.data
+            techs.value = techRes.data
+            educations.value = educationRes.data
+            workExperiences.value = workExperienceRes.data
         } catch (error:any) {
             toast.error(error.response?.data?.message || "get account fail")
         }
     }
 
-    fetchData()
+    onMounted(fetchData)
 
     // 
     const product = {
@@ -158,7 +194,13 @@
                 <button class="btn" @click="isToolModal = true">Assign tool</button>
             </div>
             <div style="display: flex; flex-wrap: wrap; gap:12px;">
-                <Tech/>
+                <Tech
+                    is-tool
+                    v-for="tool in tools" 
+                    :key="tool.id"
+                    :tool="tool"
+                    @click="{isTechModal= true;}"
+                />
             </div>
         </div>
         <!-- Tech Stack -->
@@ -168,27 +210,42 @@
                 <button class="btn" @click="isTechModal = true">Assign tech</button>
             </div>
             <div style="display: flex; flex-wrap: wrap; gap:12px;">
-                <Tech/>
+                <Tech
+                    v-for="tech in techs" 
+                    :key="tech.id"
+                    :tech="tech"
+                    @click="{isTechModal= true;}"
+                />
             </div>
         </div>
         <!-- Educations -->
         <div class="box">
             <div class="box-header">
                 <p class="title">Educations</p>
-                <button class="btn" @click="isEducationModal = true">Add new</button>
+                <button class="btn" @click="{isEducationModal = true; isEditEducationModal = false}">Add new</button>
             </div>
             <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                <Education/>
+                <Education
+                    v-for="education in educations" 
+                    :key="education.id"
+                    :education="education"
+                    @click="{isEducationModal= true; isEditEducationModal = true; editEducation = education}"
+                />
             </div>
         </div>
         <!-- Work Experiences -->
         <div class="box">
             <div class="box-header">
                 <p class="title">Work Experiences</p>
-                <button class="btn" @click="isWorkExperienceModal = true">Add new</button>
+                <button class="btn" @click="{isWorkExperienceModal = true; isEditWorkExperienceModal = false}">Add new</button>
             </div>
             <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                <Experience/>
+                <Experience
+                    v-for="workExperience in workExperiences" 
+                    :key="workExperience.id"
+                    :work-experience="workExperience"
+                    @click="{isWorkExperienceModal= true; isEditWorkExperienceModal = true; editWorkExperience = workExperience}"
+                />
             </div>
         </div>
         <!-- Product -->
@@ -203,12 +260,42 @@
         </div>
     </div>
     <!-- Modal -->
-    <AssignTechUserModal :open="isTechModal" @close="isTechModal = false"></AssignTechUserModal>
-    <AssignTechUserModal :open="isToolModal"  @close="isToolModal = false" is-tool></AssignTechUserModal>
-    <CreateUserProductModal :open="isCreateUserProductModal" @close="isCreateUserProductModal = false"></CreateUserProductModal>
-    <UpdateUserProductModal :user-product="product" :open="isUpdateUserProductModal" @close="isUpdateUserProductModal = false"></UpdateUserProductModal>
-    <UpdateOrCreateEducationModal :open="isEducationModal"  @close="isEducationModal = false"></UpdateOrCreateEducationModal>
-    <UpdateOrCreateWorkExperienceModal :open="isWorkExperienceModal"  @close="isWorkExperienceModal = false" is-tool></UpdateOrCreateWorkExperienceModal>
+    <AssignTechUserModal 
+        v-model:tech-modal="techs" 
+        :user-techs="techs" 
+        :open="isTechModal" 
+        @close="isTechModal = false"
+    />
+    <AssignTechUserModal 
+        v-model:tool-modal="tools" 
+        :user-tools="tools" 
+        :open="isToolModal"  
+        @close="isToolModal = false" 
+        is-tool
+    />
+    <CreateUserProductModal 
+        :open="isCreateUserProductModal" 
+        @close="isCreateUserProductModal = false"
+    />
+    <UpdateUserProductModal 
+        :user-product="product" 
+        :open="isUpdateUserProductModal" 
+        @close="isUpdateUserProductModal = false"
+    />
+    <UpdateOrCreateEducationModal 
+        v-model="educations" 
+        :user-education="editEducation" 
+        :open="isEducationModal"  
+        @close="isEducationModal = false" 
+        :is-edit="isEditEducationModal"
+    />
+    <UpdateOrCreateWorkExperienceModal 
+        v-model="workExperiences" 
+        :user-work-experience="editWorkExperience" 
+        :open="isWorkExperienceModal" 
+        @close="isWorkExperienceModal = false" 
+        :is-edit="isEditWorkExperienceModal"
+    />
 </template>
 <style scoped>
     .profile-container{

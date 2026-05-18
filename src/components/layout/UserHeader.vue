@@ -24,11 +24,13 @@
 </template>
 <style scoped>
     .header{
-        display: flex;
-        align-items: center;
-        padding: 0;
-        margin:0;
-        border-bottom: 1px solid gray;
+        position: sticky;
+        top:0;
+        z-index:1000;
+        display:flex;
+        align-items:center;
+        border-bottom:1px solid gray;
+        background:white;
     }
     .tongLeSiteBar{
         padding: 15px 30px;
