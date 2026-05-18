@@ -1,66 +1,130 @@
 <script setup lang="ts">
+    import { ref, computed, watch, onMounted } from 'vue'
+    import { useToast } from 'vue-toastification';
+
     import BaseModal from '@components/ui/modal/BaseModal.vue';
     import Input from '@components/ui/input/Input.vue';
-    import { ref, computed, watch } from 'vue';
 
-    import type { UserTool, UserTech } from '@type/entities';
+    import type { Tool, Tech } from '@type/entities';
 
-    const {open = false, isTool = false, userTools, userTechs} = defineProps<{
-        open ?: boolean
-        isTool ?: boolean
-        userTools ?: UserTool[]
-        userTechs ?: UserTech[]
+    import { getTools, assignMultipleTool  } from '@services/toolService';
+    import { getTechs, assignMultipleTech } from '@services/techService';
+
+    const toolModel = defineModel<Tool[]>('toolModal')
+    const techModel = defineModel<Tech[]>('techModal')
+
+    const props = defineProps<{
+        open?: boolean
+        isTool?: boolean
+        userTools?: Tool[]
+        userTechs?: Tech[]
     }>()
 
     const emit = defineEmits<{
         (e : 'close') : void
     }>()
 
+    const toast = useToast()
+    const loading = ref(false)
+
+    const field = ref<'techs' | 'tools'>('techs')
     const selectedValues = ref<string[]>([])
 
-    const tools = [{id:'t1', title : '1', logo :''},{id:'t2', title : '2', logo :''},]
-    const techs = [{id:'te1', title : '1', logo :''},{id:'te2', title : '2', logo :''}]
+    const tools = ref<Tool[]>([])
+    const techs = ref<Tech[]>([])
+    const errors = ref<any>()
 
-    const okTools = [{id:'o1', user_id: 'u1', tool_id: 't1'}]
-    const okTechs = [{id:'ot1', user_id: 'u1', tech_id: 'te1'}]
+    // const okTools = [{id:'o1', user_id: 'u1', tool_id: 't1'}]
+    // const okTechs = [{id:'ot1', user_id: 'u1', tech_id: 'te1'}]
+
+    const fetchData = async ()=>{
+        try {
+            loading.value = true
+            const [toolRes, techRes] = await Promise.all([
+                getTools(),
+                getTechs()
+            ])
+            tools.value = toolRes.data
+            techs.value = techRes.data
+        } catch (error : any) {
+            toast.error(error.response?.data?.message || "get data fail")
+        }finally {
+            loading.value = false
+        }
+    }
+    onMounted(fetchData)
 
     const currentOptions = computed(() => {
-        if (isTool) {
-            return tools.map(o => ({
-            key: o.id,
-            value: o.title,
-            disabled: okTools.some(tool => tool.tool_id === o.id)
+        if (props.isTool) {
+            return tools.value.map(tool => ({
+            key: tool.id,
+            value: tool.name,
+            disabled: props.userTools ?  props.userTools.some(userTool => userTool.id === tool.id) : false
             }))
-        } else {
-            return techs.map(o => ({
-            key: o.id,
-            value: o.title,
-            disabled: okTechs.some(tech => tech.tech_id === o.id)
-            }))
-        }
+        } 
+        return techs.value.map(tech => ({
+        key: tech.id,
+        value: tech.name,
+        disabled: props.userTechs ? props.userTechs.some(userTech => userTech.id === tech.id) : false
+        }))
+        
     })
 
-    const handleSubmit = ()=>{
-        const newSelectedValues = selectedValues.value.filter(idValue =>  {
-            const mappingOption = currentOptions.value.find(option => option.key === idValue)
+    const handleSubmit = async () => {
+        const availableSelectedValues = selectedValues.value.filter(idValue => {
+            const mappingOption = currentOptions.value.find(
+                option => option.key === idValue
+            )
+
             return mappingOption ? !mappingOption.disabled : false
         })
 
-        const key = isTool ? 'tool_id' : 'tech_id'
-        const result = newSelectedValues.map(selectedValue => {
-            return{
-                [key] : selectedValue
+        try {
+            if (props.isTool) {
+
+                const result: { tool_id: string }[] =
+                    availableSelectedValues.map(selectedValue => ({
+                        tool_id: selectedValue
+                    }))
+                const res = await assignMultipleTool({
+                    tools: result
+                })
+                toolModel.value = res.data
+                toast.success(res.message)
+
+            } else {
+
+                const result: { tech_id: string }[] =
+                    availableSelectedValues.map(selectedValue => ({
+                        tech_id: selectedValue
+                    }))
+                const res = await assignMultipleTech({
+                    techs: result
+                })
+                techModel.value = res.data
+                toast.success(res.message)
             }
-        })
+            emit('close')
+
+        } catch (error: any) {
+            errors.value = error.response?.data?.errors
+            toast.error(error.response?.data?.message)
+        }
     }
 
     watch(
-        () => isTool,
-        (newIsTool) => {
-            if (newIsTool) {
-            selectedValues.value = okTools.map(ok => ok.tool_id)
+        [
+            () => props.isTool,
+            () => props.userTools,
+            () => props.userTechs
+        ],
+        () => {
+            if (props.isTool) {
+            selectedValues.value = props.userTools?  props.userTools.map(userTool => userTool.id) : []
+            field.value = 'tools'
             } else {
-            selectedValues.value = okTechs.map(ok => ok.tech_id)
+            selectedValues.value = props.userTechs? props.userTechs.map(userTech => userTech.id) : []
+            field.value = 'techs'
             }
         },
         { immediate: true }
@@ -72,12 +136,13 @@
         <h1 style="text-align: center;">{{ isTool ? "Assign Tool" : "Assign Languages or Framework" }}</h1>
         <div>
             <Input 
+                :error="errors?.[field]"
                 type="checkbox" 
                 v-model="selectedValues" 
                 :label="isTool ? 'Tool' : 'Languages or Framework' " 
                 :optional-values="currentOptions"
             />
-            <button class="btn" @click="handleSubmit">Submit</button>
+            <button :disabled="loading" class="btn" @click="handleSubmit">{{ loading ? "Loading" : "Submit" }}</button>
         </div>
     </BaseModal>
 </template>

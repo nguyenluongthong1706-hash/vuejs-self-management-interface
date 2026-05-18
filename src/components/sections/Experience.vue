@@ -1,11 +1,16 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+    import type { UserWorkExperience } from '@type/entities';
+    const {workExperience} = defineProps<{
+        workExperience : UserWorkExperience
+    }>()
+</script>
 <template>
     <div class="big-card">
-        <p class="card-title card-content nowrap-text">PHP developer intern</p>
+        <p class="card-title card-content nowrap-text">{{ workExperience.position }}</p>
         <p class="card-content blue-text">
-            <span>4/5/2025</span> - <span>30/8/2025</span>
+            <span>{{ workExperience.start_date }}</span> - <span>{{ workExperience.end_date }}</span>
         </p>
-        <p class="card-content nowrap-text">Hodford company</p>
+        <p class="card-content nowrap-text">{{ workExperience.place_at }}</p>
     </div>
 </template>
 <style scoped>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-    import { ref } from 'vue';
+    import { ref, onMounted } from 'vue';
     import { useToast } from 'vue-toastification';
     
     import Tech from '@components/sections/Tech.vue';
@@ -41,18 +41,18 @@
 
     const fetchData = async () =>{
         try {
-            const toolRes = await getTools()
+            const [toolRes, techRes] = await Promise.all([
+                await getTools(),
+                await getTechs()
+            ])
             tools.value = toolRes.data
-            toast.success(toolRes.message)
-            const techRes = await getTechs()
             techs.value = techRes.data
-            toast.success(techRes.message)
         } catch (error:any) {
             toast.error(error.response?.data?.message || "get data fail")
         }
     }
 
-    fetchData()
+    onMounted(fetchData)
 
 </script>
 <template>

@@ -51,3 +51,45 @@ export interface UpdateTechRequest{
     name: string
     icon?: File
 }
+
+// user tool
+export interface AssignMultipleToolRequest{
+    tools: {tool_id: string} []  
+}
+
+// user tech
+export interface AssignMultipleTechRequest{
+    techs: {tech_id: string} []     
+}
+
+// Education
+export interface CreateEducationRequest{
+    name: string
+    degree: string
+    start_date: Date
+    end_date: Date
+}
+
+
+export interface UpdateEducationRequest{
+    name: string
+    degree: string
+    start_date: Date
+    end_date: Date
+}
+
+// WorkExperience
+export interface CreateWorkExperienceRequest{
+    position: string
+    place_at: string
+    start_date: Date
+    end_date: Date
+}
+
+
+export interface UpdateWorkExperienceRequest{
+    position: string
+    place_at: string
+    start_date: Date
+    end_date: Date
+}

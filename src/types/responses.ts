@@ -1,4 +1,4 @@
-import type { User, Tool, Tech } from "./entities"
+import type { User, Tool, Tech, UserEducation, UserWorkExperience } from "./entities"
 
 export interface RegisterResponse{
     message : string
@@ -68,5 +68,62 @@ export interface UpdateTechResponse{
 
 
 export interface DeleteTechResponse{
+    message : string
+}
+
+// user tool
+export interface AssignMultipleToolResponse{
+    message: string   
+    data : Tool [] 
+}
+
+// user tech
+export interface AssignMultipleTechResponse{
+    message: string  
+    data : Tech []  
+}
+
+// Education
+export interface GetUserEducationResponse{
+    message : string
+    data : UserEducation[]
+}
+
+
+export interface CreateEducationResponse{
+    message : string
+    data : UserEducation
+}
+
+
+export interface UpdateEducationResponse{
+    message : string
+    data : UserEducation
+}
+
+
+export interface DeleteEducationResponse{
+    message : string
+}
+
+// WorkExperience
+export interface GetUserWorkExperienceResponse{
+    message : string
+    data : UserWorkExperience[]
+}
+
+
+export interface CreateWorkExperienceResponse{
+    message : string
+    data : UserWorkExperience
+}
+
+
+export interface UpdateWorkExperienceResponse{
+    message : string
+    data : UserWorkExperience
+}
+
+export interface DeleteWorkExperienceResponse{
     message : string
 }

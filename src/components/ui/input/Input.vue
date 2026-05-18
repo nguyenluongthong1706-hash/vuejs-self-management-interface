@@ -15,7 +15,7 @@
         optionalValues ?: OptionalItem[]
     }>()
 
-    const value = defineModel<string | File | Date | null>()
+    const value = defineModel<string | File | Date | null | String[]>()
 
     const handleFileChange = (event: Event) => {
         const target = event.target as HTMLInputElement
@@ -29,21 +29,31 @@
 
     const proxyValue = computed({
         get() {
-            if (type === 'date' && typeof value.value === 'string') {
-                const d = new Date(value.value);
+            if (type === 'date') {
+                if (value.value instanceof Date) {
+                    const year = value.value.getFullYear();
+                    const month = String(value.value.getMonth() + 1).padStart(2, '0');
+                    const day = String(value.value.getDate()).padStart(2, '0');
 
-                if (!isNaN(d.getTime())) {
-                    const year = d.getFullYear();
-                    const month = String(d.getMonth() + 1).padStart(2, '0');
-                    const day = String(d.getDate()).padStart(2, '0');
                     return `${year}-${month}-${day}`;
+                }
+                if (typeof value.value === 'string') {
+                    const d = new Date(value.value);
+
+                    if (!isNaN(d.getTime())) {
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+
+                        return `${year}-${month}-${day}`;
+                    }
                 }
             }
             return value.value;
         },
         set(newValue: string) {
             if (type === 'date' && newValue) {
-                value.value = new Date(newValue);
+                value.value = newValue;
             } else {
                 value.value = newValue;
             }
