@@ -197,10 +197,12 @@
             <div style="display: flex; flex-wrap: wrap; gap:12px;">
                 <Tech
                     is-tool
+                    allow-unassign
                     v-for="tool in tools" 
                     :key="tool.id"
                     :item="tool"
                     @click="{isTechModal= true;}"
+                    v-model="tools"
                 />
             </div>
         </div>
@@ -212,10 +214,12 @@
             </div>
             <div style="display: flex; flex-wrap: wrap; gap:12px;">
                 <Tech
+                    allow-unassign
                     v-for="tech in techs" 
                     :key="tech.id"
                     :item="tech"
                     @click="{isTechModal= true;}"
+                    v-model="techs"
                 />
             </div>
         </div>

@@ -1,6 +1,6 @@
 import api from "./api";
 import type { CreateToolRequest, UpdateToolRequest, AssignToolsRequest } from "@type/requests";
-import type { GetToolsResponse, CreateToolResponse, UpdateToolResponse, DeleteToolResponse, AssignToolsResponse } from "@type/responses";
+import type { GetToolsResponse, CreateToolResponse, UpdateToolResponse, DeleteToolResponse, AssignToolsResponse, UnAssignToolResponse } from "@type/responses";
 
 export const getTools = async () : Promise<GetToolsResponse> =>{
     const res = await api.get<GetToolsResponse>('tools')
@@ -45,5 +45,10 @@ export const deleteTool = async (id: string) : Promise<DeleteToolResponse> =>{
 
 export const assignTools = async (data: AssignToolsRequest) : Promise<AssignToolsResponse> =>{
     const res = await api.post<AssignToolsResponse>('accounts/me/tools', data)
+    return res.data
+}
+
+export const unassignTool = async (id: string) : Promise<UnAssignToolResponse> =>{
+    const res = await api.delete<UnAssignToolResponse>(`accounts/me/tool/${id}`)
     return res.data
 }

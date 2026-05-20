@@ -1,6 +1,6 @@
 import api from "./api";
 import type { CreateTechRequest, UpdateTechRequest, AssignTechsRequest } from "@type/requests";
-import type { GetTechsResponse, CreateTechResponse, UpdateTechResponse, DeleteTechResponse, AssignTechsResponse } from "@type/responses";
+import type { GetTechsResponse, CreateTechResponse, UpdateTechResponse, DeleteTechResponse, AssignTechsResponse, UnAssignTechResponse } from "@type/responses";
 
 export const getTechs = async () : Promise<GetTechsResponse> =>{
     const res = await api.get<GetTechsResponse>('techs')
@@ -43,5 +43,10 @@ export const deleteTech = async (id: string) : Promise<DeleteTechResponse> =>{
 
 export const assignTechs = async (data: AssignTechsRequest) : Promise<AssignTechsResponse> =>{
     const res = await api.post<AssignTechsResponse>('accounts/me/techs', data)
+    return res.data
+}
+
+export const unassignTech = async (id: string) : Promise<UnAssignTechResponse> =>{
+    const res = await api.delete<UnAssignTechResponse>(`accounts/me/tech/${id}`)
     return res.data
 }
