@@ -7,11 +7,11 @@
 
     import type { Tool, Tech } from '@type/entities';
 
-    import { getTools, assignMultipleTool  } from '@services/toolService';
-    import { getTechs, assignMultipleTech } from '@services/techService';
+    import { getTools, assignTools  } from '@services/toolService';
+    import { getTechs, assignTechs } from '@services/techService';
 
-    const toolModel = defineModel<Tool[]>('toolModal')
-    const techModel = defineModel<Tech[]>('techModal')
+    const selectedTools = defineModel<Tool[]>('toolModal')
+    const selectedTechs  = defineModel<Tech[]>('techModal')
 
     const props = defineProps<{
         open?: boolean
@@ -27,17 +27,15 @@
     const toast = useToast()
     const loading = ref(false)
 
-    const field = ref<'techs' | 'tools'>('techs')
-    const selectedValues = ref<string[]>([])
+    const resourceType  = ref<'techs' | 'tools'>('techs')
+    const selectedIds = ref<string[]>([])
 
     const tools = ref<Tool[]>([])
     const techs = ref<Tech[]>([])
     const errors = ref<any>()
+    
 
-    // const okTools = [{id:'o1', user_id: 'u1', tool_id: 't1'}]
-    // const okTechs = [{id:'ot1', user_id: 'u1', tech_id: 'te1'}]
-
-    const fetchData = async ()=>{
+    const fetchOptions = async ()=>{
         try {
             loading.value = true
             const [toolRes, techRes] = await Promise.all([
@@ -52,7 +50,7 @@
             loading.value = false
         }
     }
-    onMounted(fetchData)
+    onMounted(fetchOptions)
 
     const currentOptions = computed(() => {
         if (props.isTool) {
@@ -71,37 +69,39 @@
     })
 
     const handleSubmit = async () => {
-        const availableSelectedValues = selectedValues.value.filter(idValue => {
-            const mappingOption = currentOptions.value.find(
+        const validSelectedIds = selectedIds.value.filter(idValue => {
+            const matchedOption = currentOptions.value.find(
                 option => option.key === idValue
             )
 
-            return mappingOption ? !mappingOption.disabled : false
+            return matchedOption ? !matchedOption.disabled : false
         })
 
         try {
             if (props.isTool) {
 
-                const result: { tool_id: string }[] =
-                    availableSelectedValues.map(selectedValue => ({
-                        tool_id: selectedValue
+                const toolAssignments: { toolId: string }[] =
+                    validSelectedIds.map(idValue => ({
+                        toolId: idValue
                     }))
-                const res = await assignMultipleTool({
-                    tools: result
+
+                console.log(toolAssignments)
+                const res = await assignTools({
+                    tools: toolAssignments
                 })
-                toolModel.value = res.data
+                selectedTools.value = res.data
                 toast.success(res.message)
 
             } else {
 
-                const result: { tech_id: string }[] =
-                    availableSelectedValues.map(selectedValue => ({
-                        tech_id: selectedValue
+                const techAssignments: { techId: string }[] =
+                    validSelectedIds.map(idValue => ({
+                        techId: idValue
                     }))
-                const res = await assignMultipleTech({
-                    techs: result
+                const res = await assignTechs({
+                    techs: techAssignments
                 })
-                techModel.value = res.data
+                selectedTechs .value = res.data
                 toast.success(res.message)
             }
             emit('close')
@@ -120,11 +120,11 @@
         ],
         () => {
             if (props.isTool) {
-            selectedValues.value = props.userTools?  props.userTools.map(userTool => userTool.id) : []
-            field.value = 'tools'
+            selectedIds.value = props.userTools?  props.userTools.map(userTool => userTool.id) : []
+            resourceType .value = 'tools'
             } else {
-            selectedValues.value = props.userTechs? props.userTechs.map(userTech => userTech.id) : []
-            field.value = 'techs'
+            selectedIds.value = props.userTechs? props.userTechs.map(userTech => userTech.id) : []
+            resourceType .value = 'techs'
             }
         },
         { immediate: true }
@@ -136,11 +136,11 @@
         <h1 style="text-align: center;">{{ isTool ? "Assign Tool" : "Assign Languages or Framework" }}</h1>
         <div>
             <Input 
-                :error="errors?.[field]"
+                :error="errors?.[resourceType ]"
                 type="checkbox" 
-                v-model="selectedValues" 
+                v-model="selectedIds" 
                 :label="isTool ? 'Tool' : 'Languages or Framework' " 
-                :optional-values="currentOptions"
+                :options="currentOptions"
             />
             <button :disabled="loading" class="btn" @click="handleSubmit">{{ loading ? "Loading" : "Submit" }}</button>
         </div>

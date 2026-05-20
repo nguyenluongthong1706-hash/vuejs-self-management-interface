@@ -53,35 +53,35 @@
         id: '',
         name: '',
         email: '',
-        date_of_birth: new Date(),
+        dateOfBirth: '',
         gender: 'male',
         field: '',
         slogan: '',
-        about_me: '',
+        aboutMe: '',
         avatar: '',
-        facebook_link:'',
-        linkedin_link:'',
-        github_link: '',
-        location : {level1: '', level2:'', level3:'', detail:''},
-        create_at: new Date(),
-        update_at: new Date()
+        facebookLink:'',
+        linkedinLink:'',
+        githubLink: '',
+        location : {province: '', district:'', ward:'', detail:''}
     })
 
     const handleUserSubmit = async ()=>{
         const userFormField = {
             name : user.value.name,
-            date_of_birth : user.value.date_of_birth,
+            dateOfBirth : user.value.dateOfBirth,
             gender : user.value.gender,
             field : user.value.field,
             slogan : user.value.slogan,
-            about_me : user.value.about_me,
-            facebook_link : user.value.facebook_link,
-            linkedin_link : user.value.linkedin_link,
-            github_link : user.value.github_link,
-            level1 : user.value.location.level1,
-            level2 : user.value.location.level2,
-            level3 : user.value.location.level3,
-            detail : user.value.location.detail,
+            aboutMe : user.value.aboutMe,
+            facebookLink : user.value.facebookLink,
+            linkedinLink : user.value.linkedinLink,
+            githubLink : user.value.githubLink,
+            location:{
+                province: user.value.location.province,
+                district: user.value.location.district,
+                ward: user.value.location.ward,
+                detail: user.value.location.detail
+            }
         }
         try {
             userFormError.value = ''
@@ -123,6 +123,7 @@
             educations.value = educationRes.data
             workExperiences.value = workExperienceRes.data
         } catch (error:any) {
+            console.log(error.response?.data?.message)
             toast.error(error.response?.data?.message || "get account fail")
         }
     }
@@ -135,11 +136,11 @@
         name: 'product', 
         description:'description....', 
         task:'task....', image:'http://...',
-        start_date: new Date(), 
-        end_date: new Date(), 
-        user_id:'e01', 
-        product_techs:[{id:'p1', tech_id :'te1', name: 'java', icon:''},{id:'p2', tech_id :'te2', name: 'python', icon:''}],
-        product_urls: [{ id:'r1', title: 'title', link: 'http://' }]
+        startDate: '', 
+        endDate: '', 
+        userId:'e01', 
+        productTechs:[{id:'p1', techId :'te1', name: 'java', icon:''},{id:'p2', techId :'te2', name: 'python', icon:''}],
+        productLinks: [{ id:'r1', title: 'title', url: 'http://' }]
     } as UserProduct
 
 
@@ -160,30 +161,30 @@
             <!-- Basic Information -->
             <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
                 <Input :error="userFormError?.name" v-model="user.name" placeholder="N.L.T" label="Name"/>
-                <Input :error="userFormError?.date_of_birth" v-model="user.date_of_birth" label="Date of birth" type="date"/>
-                <Input :error="userFormError?.gender" v-model="user.gender" label="Gender" type="radio" :optional-values="[{key: 'male', value: 'Male'},{key:'female', value: 'Female'}]"/>
+                <Input :error="userFormError?.dateOfBirth" v-model="user.dateOfBirth" label="Date of birth" type="date"/>
+                <Input :error="userFormError?.gender" v-model="user.gender" label="Gender" type="radio" :options="[{key: 'male', value: 'Male'},{key:'female', value: 'Female'}]"/>
             </div>
             <!-- Other info -->
             <Input :error="userFormError?.email" v-model="user.email" placeholder="user@gmail.com" label="Email" type="email" readonly/>
             <Input :error="userFormError?.field" v-model="user.field" placeholder="Information technology" label="Field"/>
             <Input :error="userFormError?.slogan" v-model="user.slogan" placeholder="Try and try" label="Slogan"/>
-            <Textarea :error="userFormError?.about_me" v-model="user.about_me" placeholder="I am ...." label="About me"/>
+            <Textarea :error="userFormError?.aboutMe" v-model="user.aboutMe" placeholder="I am ...." label="About me"/>
             <!-- Address -->
             <div>
                 <p style="font-size: 21px; font-weight: bold; margin-bottom: 18px;">Address</p>
                 <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-                    <Input :error="userFormError?.level1" v-model="user.location.level1" placeholder="da nang" label="Level 1"/>
-                    <Input :error="userFormError?.level2" v-model="user.location.level2" placeholder="Cam le" label="Level 2"/>
-                    <Input :error="userFormError?.level3" v-model="user.location.level3" placeholder="Hai Chau" label="Level 3"/>
+                    <Input :error="userFormError?.location?.province" v-model="user.location.province" placeholder="da nang" label="Province"/>
+                    <Input :error="userFormError?.location?.district" v-model="user.location.district" placeholder="Cam le" label="District"/>
+                    <Input :error="userFormError?.location?.ward" v-model="user.location.ward" placeholder="Hai Chau" label="Ward"/>
                 </div>
-                <Input :error="userFormError?.detail" v-model="user.location.detail" style="width: 100%;" placeholder="floor 2, building 2, xxx street,..." label="Detail"/>
+                <Input :error="userFormError?.location?.detail" v-model="user.location.detail" style="width: 100%;" placeholder="floor 2, building 2, xxx street,..." label="Detail"/>
             </div>
             <!-- Meta -->
             <p style="font-size: 21px; font-weight: bold; margin-bottom: 18px;">Meta</p>
             <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-                <Input :error="userFormError?.facebook_link" v-model="user.facebook_link" placeholder="Link facebook" label="Link facebook"/>
-                <Input :error="userFormError?.linkedin_link" v-model="user.linkedin_link" placeholder="Link linkedin" label="Link linkedin"/>
-                <Input :error="userFormError?.github_link" v-model="user.github_link" placeholder="Link github" label="Link github"/>
+                <Input :error="userFormError?.facebookLink" v-model="user.facebookLink" placeholder="Link facebook" label="Link facebook"/>
+                <Input :error="userFormError?.linkedinLink" v-model="user.linkedinLink" placeholder="Link linkedin" label="Link linkedin"/>
+                <Input :error="userFormError?.githubLink" v-model="user.githubLink" placeholder="Link github" label="Link github"/>
             </div>
             <button @click="handleUserSubmit" class="btn">Edit</button>
         </div>
@@ -198,7 +199,7 @@
                     is-tool
                     v-for="tool in tools" 
                     :key="tool.id"
-                    :tool="tool"
+                    :item="tool"
                     @click="{isTechModal= true;}"
                 />
             </div>
@@ -213,7 +214,7 @@
                 <Tech
                     v-for="tech in techs" 
                     :key="tech.id"
-                    :tech="tech"
+                    :item="tech"
                     @click="{isTechModal= true;}"
                 />
             </div>
@@ -261,40 +262,40 @@
     </div>
     <!-- Modal -->
     <AssignTechUserModal 
-        v-model:tech-modal="techs" 
-        :user-techs="techs" 
         :open="isTechModal" 
         @close="isTechModal = false"
+        v-model:tech-modal="techs" 
+        :user-techs="techs" 
     />
     <AssignTechUserModal 
-        v-model:tool-modal="tools" 
-        :user-tools="tools" 
+        is-tool
         :open="isToolModal"  
         @close="isToolModal = false" 
-        is-tool
+        v-model:tool-modal="tools" 
+        :user-tools="tools" 
     />
     <CreateUserProductModal 
         :open="isCreateUserProductModal" 
         @close="isCreateUserProductModal = false"
     />
     <UpdateUserProductModal 
-        :user-product="product" 
         :open="isUpdateUserProductModal" 
         @close="isUpdateUserProductModal = false"
+        :product="product" 
     />
     <UpdateOrCreateEducationModal 
-        v-model="educations" 
-        :user-education="editEducation" 
         :open="isEducationModal"  
+        :is-editing="isEditEducationModal"
         @close="isEducationModal = false" 
-        :is-edit="isEditEducationModal"
+        v-model="educations" 
+        :education="editEducation" 
     />
     <UpdateOrCreateWorkExperienceModal 
-        v-model="workExperiences" 
-        :user-work-experience="editWorkExperience" 
         :open="isWorkExperienceModal" 
+        :is-editing="isEditWorkExperienceModal"
         @close="isWorkExperienceModal = false" 
-        :is-edit="isEditWorkExperienceModal"
+        v-model="workExperiences" 
+        :work-experience="editWorkExperience" 
     />
 </template>
 <style scoped>

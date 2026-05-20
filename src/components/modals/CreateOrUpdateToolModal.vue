@@ -13,7 +13,7 @@
 
     const props = defineProps<{
         open ?: boolean
-        isEdit ?: boolean
+        isEditing ?: boolean
         tool ?: ToolType
     }>()
 
@@ -21,46 +21,46 @@
         (e : 'close') : void
     }>()
 
-    const toolList = defineModel<ToolType[]>()
+    const tools  = defineModel<ToolType[]>()
 
     const errors = ref<any>()
 
-    const selectedTool = ref<ToolType>({
+    const currentTool = ref<ToolType>({
         id: '',
         name: '',
         icon: ''
     })
 
-    const toolFormField = ref<{name: string, icon: File | null}>({
+    const toolForm = ref<{name: string, icon?: File}>({
         name: '',
-        icon: null
+        icon: undefined
     })
 
     const handleSubmit = async ()=>{
         errors.value = null
 
-        if(props.isEdit){
+        if(props.isEditing){
             
-            const updateFormField:{name: string, icon?: File} =  {
-                name: toolFormField.value.name
+            const updatePayload:{name: string, icon?: File} =  {
+                name: toolForm.value.name
             }
-            if(toolFormField.value.icon){
-                updateFormField.icon = toolFormField.value.icon
+            if(toolForm.value.icon){
+                updatePayload.icon = toolForm.value.icon
             }
             try {
-                const res = await updateTool(selectedTool.value.id, updateFormField)
+                const res = await updateTool(currentTool.value.id, updatePayload)
                 
                 const updatedTool = res.data
 
-                const index = toolList.value?.findIndex(
+                const index = tools .value?.findIndex(
                     tool => tool.id === updatedTool.id
                 )
                 if (
                     index !== undefined &&
                     index !== -1 &&
-                    toolList.value
+                    tools .value
                 ) {
-                    toolList.value[index] = updatedTool
+                    tools .value[index] = updatedTool
                 }
 
                 toast.success(res.message)
@@ -71,9 +71,13 @@
             }
         }else{
             try {
-                const res = await createTool(toolFormField.value)
+                if (!toolForm.value.icon) return
+                const res = await createTool({
+                    name: toolForm.value.name,
+                    icon: toolForm.value.icon
+                })
                 
-                toolList.value?.push(res.data)
+                tools .value?.push(res.data)
                 toast.success(res.message)
                 emit('close')
             } catch (error: any) {
@@ -85,9 +89,9 @@
 
     const handleDelete = async ()=>{
         try {
-            const res = await deleteTool(selectedTool.value.id)
-            toolList.value = toolList.value?.filter(
-                tool => tool.id !== selectedTool.value.id
+            const res = await deleteTool(currentTool.value.id)
+            tools .value = tools .value?.filter(
+                tool => tool.id !== currentTool.value.id
             )
             toast.success(res.message)
             emit('close')
@@ -97,20 +101,20 @@
     }
 
     watch(
-        ()=>[props.isEdit, props.tool] as const,
-        ([isEdit, tool]) => {
-            if (isEdit && tool) {
-                selectedTool.value = { ...tool }
-                toolFormField.value.name = tool.name
+        ()=>[props.isEditing, props.tool] as const,
+        ([isEditing, tool]) => {
+            if (isEditing && tool) {
+                currentTool.value = { ...tool }
+                toolForm.value.name = tool.name
             }else {
-                selectedTool.value = {
+                currentTool.value = {
                     id: '',
                     name: '',
                     icon: ''
                 }
-                toolFormField.value = {
+                toolForm.value = {
                     name: '',
-                    icon: null
+                    icon: undefined
                 }
             }
         },
@@ -120,13 +124,13 @@
 </script>
 <template>
     <BaseModal :open="open" @close="emit('close')">
-        <h1 style="text-align: center;">{{ isEdit ? "Update tool" : "Create new tool" }}</h1>
-        <Input :error="errors?.name" label="Title" placeholder="Vs Code" v-model="toolFormField.name"/>
-        <Input :error="errors?.icon" label="Icon Image" v-model="toolFormField.icon" type="file"/>
-        <img style="width: 60px; object-fit: contain;" :src="selectedTool.icon" alt="">
+        <h1 style="text-align: center;">{{ isEditing ? "Update tool" : "Create new tool" }}</h1>
+        <Input :error="errors?.name" label="Title" placeholder="Vs Code" v-model="toolForm.name"/>
+        <Input :error="errors?.icon" label="Icon Image" v-model="toolForm.icon" type="file"/>
+        <img style="width: 60px; object-fit: contain;" :src="currentTool.icon" alt="">
         <div style="display: flex; gap:15px; align-items: center;">
             <button class="btn" @click="handleSubmit">Submit</button>
-            <button v-if="isEdit" class="btn" @click="handleDelete">Delete</button>
+            <button v-if="isEditing" class="btn" @click="handleDelete">Delete</button>
         </div>
     </BaseModal>
 </template>

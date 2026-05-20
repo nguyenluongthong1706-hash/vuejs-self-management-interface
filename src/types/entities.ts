@@ -2,18 +2,16 @@ export interface User {
     id: string
     name: string
     email: string
-    date_of_birth: Date
+    dateOfBirth: string
     gender:  "male" | "female"
     field: string
     slogan: string
-    about_me: string
+    aboutMe: string
     avatar: string
-    facebook_link: string
-    linkedin_link: string
-    github_link: string  
-    location: {level1: string, level2: string, level3: string, detail ?: string}
-    create_at: Date
-    update_at: Date
+    facebookLink: string
+    linkedinLink: string
+    githubLink: string  
+    location: Location
 }
 
 export interface Tool{
@@ -28,16 +26,22 @@ export interface Tech{
     icon: string
 }
 
-export interface UserTool{
+export interface UserEducation{
     id: string
-    user_id: string
-    tool_id : string
+    name: string
+    degree: string
+    startDate: string
+    endDate: string
+    userId: string
 }
 
-export interface UserTech{
+export interface UserWorkExperience{
     id: string
-    user_id: string
-    tech_id : string
+    position: string
+    organization: string
+    startDate: string
+    endDate: string
+    userId: string
 }
 
 export interface UserProduct{
@@ -46,41 +50,41 @@ export interface UserProduct{
     description: string
     task: string
     image: string
-    start_date: Date
-    end_date: Date
-    user_id: string
-    product_urls: ProductUrl[]
-    product_techs: ProductTech[]
-
+    startDate: string
+    endDate: string
+    userId: string
+    productLinks: ProductLink[]
+    productTechs: ProductTech[]
 }
 
-export interface ProductUrl {
+export interface Location{
+    province: string
+    district: string
+    ward: string
+    detail?: string
+}
+
+// export interface UserTool{
+//     id: string
+//     userId: string
+//     toolId : string
+// }
+
+// export interface UserTech{
+//     id: string
+//     userId: string
+//     techId : string
+// }
+
+export interface ProductLink {
     id: string
     title: string
-    link: string
+    url: string
 }
 
 export interface ProductTech{
     id: string
-    tech_id : string
+    techId : string
     name : string
     icon: string
-}
-
-export interface UserEducation{
-    id: string
-    name: string
-    degree: string
-    start_date: Date
-    end_date: Date
-    user_id: string
-}
-
-export interface UserWorkExperience{
-    id: string
-    position: string
-    place_at: string
-    start_date: Date
-    end_date: Date
-    user_id: string
 }

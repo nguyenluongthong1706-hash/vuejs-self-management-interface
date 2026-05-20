@@ -2,25 +2,25 @@
     import logo from "@assets/logo.svg" 
 </script>
 <template>
-    <div class="medium-card">
-        <img class="card-img" :src="logo" alt="">
+    <div class="product-card">
+        <img class="product-image" :src="logo" alt="">
         <div class="card-body">
-            <p class="card-title card-content nowrap-text">Job Seeking</p>
-            <p class="card-content blue-text">
+            <p class="card-title card-text nowrap-text">Job Seeking</p>
+            <p class="card-text date-text">
                 <span>4/5/2025</span> - <span>30/8/2025</span>
             </p>
-            <p class="card-content two-line-text">Description...</p>
-            <p class="card-content two-line-text">Go to <a href="">Live Demo</a></p>
+            <p class="card-text two-line-text">Description...</p>
+            <p class="card-text two-line-text">Go to <a href="">Live Demo</a></p>
             <div class="tech-list">
-                <img :src="logo" alt="icon" class="tech-img">
-                <img :src="logo" alt="icon" class="tech-img">
-                <div class="tech-box" >+1</div>
+                <img :src="logo" alt="icon" class="tech-icon">
+                <img :src="logo" alt="icon" class="tech-icon">
+                <div class="tech-overflow" >+1</div>
             </div>
         </div>
     </div>
 </template>
 <style scoped>
-    .medium-card{
+    .product-card{
         max-width: 330px;
         padding: 9px 15px;
         border-radius: 12px;
@@ -30,7 +30,7 @@
     .card-body{
         margin: 6px 0;
     }
-    .card-img{
+    .product-image{
         width: 100%;
         height: 240px;
         object-fit: contain;
@@ -39,7 +39,7 @@
         font-size: 21px !important;
         font-weight: 700;
     }
-    .card-content{
+    .card-text{
         font-size: 18px;
         margin: 9px 0;
     }
@@ -48,13 +48,13 @@
         gap: 6;
         align-items: center;
     }
-    .tech-img{
+    .tech-icon{
         width: 30px;
         height: 30px;
         border-radius: 100%;
         object-fit: contain;
     }
-    .tech-box{
+    .tech-overflow{
         display: flex;
         justify-content: center;
         align-items: center;
@@ -79,7 +79,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    .blue-text{
+    .date-text{
         color: blue !important;
     }
 </style>

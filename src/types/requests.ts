@@ -1,8 +1,10 @@
+import type { Location } from "./entities"
+
 export interface RegisterRequest{
     name: string
     email: string
     password: string
-    password_confirmation: string
+    passwordConfirmation: string
 }
 
 
@@ -14,24 +16,21 @@ export interface LoginRequest{
 
 export interface UpdateAccountRequest{
     name: string
-    date_of_birth: Date
+    dateOfBirth: string
     gender:  "male" | "female"
     field: string
     slogan: string
-    about_me: string
-    facebook_link: string
-    linkedin_link: string
-    github_link: string 
-    level1: string 
-    level2: string 
-    level3: string 
-    detail?: string  
+    aboutMe: string
+    facebookLink: string
+    linkedinLink: string
+    githubLink: string 
+    location : Location
 }
 
 
 export interface CreateToolRequest{
     name: string
-    icon: File | null
+    icon: File
 }
 
 
@@ -43,7 +42,7 @@ export interface UpdateToolRequest{
 
 export interface CreateTechRequest{
     name: string
-    icon: File | null
+    icon: File
 }
 
 
@@ -53,43 +52,36 @@ export interface UpdateTechRequest{
 }
 
 // user tool
-export interface AssignMultipleToolRequest{
-    tools: {tool_id: string} []  
+export interface AssignToolsRequest{
+    tools: {toolId: string} []  
 }
 
 // user tech
-export interface AssignMultipleTechRequest{
-    techs: {tech_id: string} []     
+export interface AssignTechsRequest{
+    techs: {techId: string} []     
 }
 
 // Education
-export interface CreateEducationRequest{
+interface EducationPayload{
     name: string
     degree: string
-    start_date: Date
-    end_date: Date
+    startDate: string
+    endDate: string
 }
+export type CreateEducationRequest = EducationPayload
 
 
-export interface UpdateEducationRequest{
-    name: string
-    degree: string
-    start_date: Date
-    end_date: Date
-}
+export type UpdateEducationRequest = EducationPayload
 
 // WorkExperience
-export interface CreateWorkExperienceRequest{
+interface WorkExperiencePayload {
     position: string
-    place_at: string
-    start_date: Date
-    end_date: Date
+    organization: string
+    startDate: string
+    endDate: string
 }
 
+export type CreateWorkExperienceRequest = WorkExperiencePayload
 
-export interface UpdateWorkExperienceRequest{
-    position: string
-    place_at: string
-    start_date: Date
-    end_date: Date
-}
+
+export type UpdateWorkExperienceRequest = WorkExperiencePayload

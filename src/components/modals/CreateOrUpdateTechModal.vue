@@ -13,7 +13,7 @@
 
     const props = defineProps<{
         open ?: boolean
-        isEdit ?: boolean
+        isEditing ?: boolean
         tech ?: TechType
     }>()
 
@@ -21,46 +21,46 @@
         (e : 'close') : void
     }>()
 
-    const techList = defineModel<TechType[]>()
+    const techs = defineModel<TechType[]>()
 
     const errors = ref<any>()
 
-    const selectedTech = ref<TechType>({
+    const currentTech = ref<TechType>({
         id: '',
         name: '',
         icon: ''
     })
 
-    const techFormField = ref<{name: string, icon: File | null}>({
+    const techForm = ref<{name: string, icon?: File}>({
         name: '',
-        icon: null
+        icon: undefined
     })
 
     const handleSubmit = async ()=>{
         errors.value = null
 
-        if(props.isEdit){
+        if(props.isEditing){
             
-            const updateFormField:{name: string, icon?: File} =  {
-                name: techFormField.value.name
+            const updatePayload:{name: string, icon?: File} =  {
+                name: techForm.value.name
             }
-            if(techFormField.value.icon){
-                updateFormField.icon = techFormField.value.icon
+            if(techForm.value.icon){
+                updatePayload.icon = techForm.value.icon
             }
             try {
-                const res = await updateTech(selectedTech.value.id, updateFormField)
+                const res = await updateTech(currentTech.value.id, updatePayload)
                 
                 const updatedTech = res.data
 
-                const index = techList.value?.findIndex(
+                const index = techs.value?.findIndex(
                     tech => tech.id === updatedTech.id
                 )
                 if (
                     index !== undefined &&
                     index !== -1 &&
-                    techList.value
+                    techs.value
                 ) {
-                    techList.value[index] = updatedTech
+                    techs.value[index] = updatedTech
                 }
 
                 toast.success(res.message)
@@ -71,9 +71,13 @@
             }
         }else{
             try {
-                const res = await createTech(techFormField.value)
+                if (!techForm.value.icon) return
+                const res = await createTech({
+                    name: techForm.value.name,
+                    icon: techForm.value.icon
+                })
                 
-                techList.value?.push(res.data)
+                techs.value?.push(res.data)
 
                 toast.success(res.message)
                 emit('close')
@@ -86,10 +90,10 @@
 
     const handleDelete = async ()=>{
         try {
-            const res = await deleteTech(selectedTech.value.id)
+            const res = await deleteTech(currentTech.value.id)
 
-            techList.value = techList.value?.filter(
-                tech => tech.id !== selectedTech.value.id
+            techs.value = techs.value?.filter(
+                tech => tech.id !== currentTech.value.id
             )
 
             toast.success(res.message)
@@ -100,20 +104,20 @@
     }
 
     watch(
-        () => [props.isEdit, props.tech] as const,
-        ([isEdit, tech]) => {
-            if (isEdit &&  tech) {
-                selectedTech.value = { ...tech }
-                techFormField.value.name = tech.name
+        () => [props.isEditing, props.tech] as const,
+        ([isEditing, tech]) => {
+            if (isEditing &&  tech) {
+                currentTech.value = { ...tech }
+                techForm.value.name = tech.name
             }else {
-                selectedTech.value = {
+                currentTech.value = {
                     id: '',
                     name: '',
                     icon: ''
                 }
-                techFormField.value = {
+                techForm.value = {
                     name: '',
-                    icon: null
+                    icon: undefined
                 }
             }
         },
@@ -123,13 +127,13 @@
 </script>
 <template>
     <BaseModal :open="open" @close="emit('close')">
-        <h1 style="text-align: center;">{{ isEdit ? "Update Tech" : "Create new tech" }}</h1>
-        <Input :error="errors?.name" label="Name" placeholder="Java" v-model="techFormField.name"/>
-        <Input :error="errors?.icon" label="Icon Image" v-model="techFormField.icon" type="file"/>
-        <img style="width: 60px; object-fit: contain;" :src="selectedTech.icon" alt="">
+        <h1 style="text-align: center;">{{ isEditing ? "Update Tech" : "Create new tech" }}</h1>
+        <Input :error="errors?.name" label="Name" placeholder="Java" v-model="techForm.name"/>
+        <Input :error="errors?.icon" label="Icon Image" v-model="techForm.icon" type="file"/>
+        <img style="width: 60px; object-fit: contain;" :src="currentTech.icon" alt="">
         <div style="display: flex; gap:15px; align-items: center;">
             <button class="btn" @click="handleSubmit">Submit</button>
-            <button v-if="isEdit" class="btn" @click="handleDelete">Delete</button>
+            <button v-if="isEditing" class="btn" @click="handleDelete">Delete</button>
         </div>
     </BaseModal>
 </template>
