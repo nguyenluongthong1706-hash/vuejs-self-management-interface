@@ -5,7 +5,7 @@
     import Input from '@components/ui/input/Input.vue';
     import Textarea from '@components/ui/textarea/Textarea.vue';
 
-    import type { ProductUrl } from '@type/entities';
+    import type { ProductLink } from '@type/entities';
 
     const {open = false} = defineProps<{
         open ?: boolean
@@ -19,22 +19,22 @@
     const description = ref<string>("")
     const task = ref<string>("")
     const image = ref()
-    const start_date = ref<Date>( new Date())
-    const end_date = ref<Date>( new Date())
-    const productUrls = ref<ProductUrl[]>([{ id:'', title: '', link: '' }])
+    const start_date = ref<string>("")
+    const end_date = ref<string>("")
+    const productLinks = ref<ProductLink[]>([{ id:'', title: '', url: '' }])
 
-    const productTechs = ref<string[]>([])
+    const selectedTechIds = ref<string[]>([])
 
     const techs = [{id:'te1', title : '1', logo :''},{id:'te2', title : '2', logo :''}]
 
-    let optionalValues = techs.map(o => ({ key: o.id,value: o.title}))
+    let techOptions = techs.map(o => ({ key: o.id,value: o.title}))
 
-    const addNewUrl = () => {
-        productUrls.value.push({ id: '', title: '', link: '' })
+    const addUrl = () => {
+        productLinks.value.push({ id: '', title: '', url: '' })
     }
 
     const removeUrl = (index: number) => {
-        productUrls.value.splice(index, 1)
+        productLinks.value.splice(index, 1)
     }
 
     const handleSubmit = ()=>{
@@ -52,21 +52,21 @@
         <h3>Techs of product</h3>
         <Input 
             type="checkbox" 
-            v-model="productTechs" 
+            v-model="selectedTechIds" 
             label="Techs" 
-            :optional-values="optionalValues"
+            :optional-values="techOptions"
         />
         <h3>Urls of product</h3>
-        <div v-for="(item, index) in productUrls" :key="index">
+        <div v-for="(productLink, index) in productLinks" :key="index">
             <div class="row-header">
                 <h4>Url {{ index + 1 }}</h4>
-                <button v-if="productUrls.length > 1" @click="removeUrl(index)">Delete</button>
+                <button v-if="productLinks.length > 1" @click="removeUrl(index)">Delete</button>
             </div>
-            <Input label="Title" placeholder="live Demo" v-model="item.title"/>
-            <Input label="Link" placeholder="http://..." v-model="item.link"/>
+            <Input label="Title" placeholder="live Demo" v-model="productLink.title"/>
+            <Input label="Link" placeholder="http://..." v-model="productLink.url"/>
         </div>
         <div style="display: flex; justify-content: center">
-            <button class="btn" @click="addNewUrl">Add new button</button>
+            <button class="btn" @click="addUrl">Add new button</button>
         </div>
         <div>
             <button class="btn" @click="handleSubmit">Submit</button>

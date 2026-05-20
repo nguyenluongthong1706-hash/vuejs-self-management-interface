@@ -3,19 +3,18 @@
     const {education} = defineProps<{
         education : UserEducation
     }>()
-
 </script>
 <template>
-    <div class="big-card">
-        <p class="card-title card-content nowrap-text">{{ education.name }}</p>
-        <p class="card-content blue-text">
-            <span>{{ education.start_date }}</span> - <span>{{ education.end_date }}</span>
+    <div class="education-card">
+        <p class="card-title card-text nowrap-text">{{ education.name }}</p>
+        <p class="card-text date-text">
+            <span>{{ education.startDate }}</span> - <span>{{ education.endDate }}</span>
         </p>
-        <p class="card-content nowrap-text">{{  education.degree  }}</p>
+        <p class="card-text nowrap-text">{{  education.degree  }}</p>
     </div>
 </template>
 <style scoped>
-    .big-card{
+    .education-card{
         width: 540px;
         padding: 9px 15px;
         border-radius: 12px;
@@ -27,7 +26,7 @@
         font-size: 21px !important;
         font-weight: 700;
     }
-    .card-content{
+    .card-text{
         font-size: 18px;
         margin: 9px 0;
     }
@@ -37,7 +36,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    .blue-text{
+    .date-text{
         color: blue !important;
     }
 </style>

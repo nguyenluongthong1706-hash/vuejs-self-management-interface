@@ -1,44 +1,46 @@
 <script setup lang="ts">
     import { computed } from 'vue'
-    interface  OptionalItem {
+
+    interface  InputOption {
         key: string
         value : string
         [key: string] : any
     }
-    const {label, placeholder = "", type = "text", style="", error = "", readonly = false, optionalValues} = defineProps<{
+
+    const {label, placeholder = "", type = "text", style="", error = "", readonly = false, options} = defineProps<{
         error ?: string
         label : string
         placeholder ?: string
         type ?: string
         style ?: string | Record<string, any>
         readonly ?: boolean
-        optionalValues ?: OptionalItem[]
+        options ?: InputOption[]
     }>()
 
-    const value = defineModel<string | File | Date | null | String[]>()
+    const modelValue = defineModel<string | File | Date | null | String[]>()
 
     const handleFileChange = (event: Event) => {
         const target = event.target as HTMLInputElement
 
         if (target.files && target.files[0]) {
-            value.value = target.files[0]
+            modelValue.value = target.files[0]
         } else {
-            value.value = null
+            modelValue.value = null
         }
     }
 
-    const proxyValue = computed({
+    const normalizedValue = computed({
         get() {
             if (type === 'date') {
-                if (value.value instanceof Date) {
-                    const year = value.value.getFullYear();
-                    const month = String(value.value.getMonth() + 1).padStart(2, '0');
-                    const day = String(value.value.getDate()).padStart(2, '0');
+                if (modelValue.value instanceof Date) {
+                    const year = modelValue.value.getFullYear();
+                    const month = String(modelValue.value.getMonth() + 1).padStart(2, '0');
+                    const day = String(modelValue.value.getDate()).padStart(2, '0');
 
                     return `${year}-${month}-${day}`;
                 }
-                if (typeof value.value === 'string') {
-                    const d = new Date(value.value);
+                if (typeof modelValue.value === 'string') {
+                    const d = new Date(modelValue.value);
 
                     if (!isNaN(d.getTime())) {
                         const year = d.getFullYear();
@@ -49,67 +51,67 @@
                     }
                 }
             }
-            return value.value;
+            return modelValue.value;
         },
         set(newValue: string) {
             if (type === 'date' && newValue) {
-                value.value = newValue;
+                modelValue.value = newValue;
             } else {
-                value.value = newValue;
+                modelValue.value = newValue;
             }
         }
     });
 
 </script>
 <template>
-    <div class="input-component">
-        <p v-if="error" class="error-field">{{ error }}</p>
-        <div class="input-field">
-            <span class="input-field-span">{{ label }}:</span>
-            <div style="display: flex; gap:9px" :class="{'checkbox-box' : type === 'checkbox'}" v-if="type === 'radio' || type === 'checkbox'">
-                <label v-for="optionalValue in optionalValues" :key="optionalValue.key">
-                    <input  :type="type" :value="optionalValue.key" v-model="proxyValue" :disabled="optionalValue.disabled"> {{ optionalValue.value }}
+    <div class="base-input">
+        <p v-if="error" class="error-message">{{ error }}</p>
+        <div class="input-container">
+            <span class="field-label">{{ label }}:</span>
+            <div style="display: flex; gap:9px" :class="{'checkbox-group' : type === 'checkbox'}" v-if="type === 'radio' || type === 'checkbox'">
+                <label v-for="optionalValue in options" :key="optionalValue.key">
+                    <input  :type="type" :value="optionalValue.key" v-model="normalizedValue" :disabled="optionalValue.disabled"> {{ optionalValue.value }}
                 </label>
             </div>
             <input
                 v-else-if="type === 'file'"
-                class="main-input-field"
+                class="field-input"
                 :type="type"
                 :style="style"
                 @change="handleFileChange"
             />
-            <input v-else class="main-input-field" :type="type" :placeholder="placeholder" :style="style" v-model="proxyValue" :readonly="readonly">
+            <input v-else class="field-input" :type="type" :placeholder="placeholder" :style="style" v-model="normalizedValue" :readonly="readonly">
         </div>
     </div>
 </template> 
 <style scoped>
-    .input-component{
+    .base-input{
         margin: 18px 0;
     }
-    .error-field{
+    .error-message{
         color: red;
         font-size: small;
         margin: 3px 0;
     }
-    .input-field {
+    .input-container {
         display: flex;
         align-items:flex-start;
         gap:15px;
     }
-    .input-field-span{
+    .field-label{
         display: inline-block;
         flex-shrink: 0;  
         font-weight: 600;
         width: 99px;
     }
-    .input-field input{
+    .input-container input{
         padding: 6px 9px;
         border-radius: 6px;
     }
-    .main-input-field{
+    .field-input{
         min-width: 300px;
     }
-    .checkbox-box{
+    .checkbox-group{
         flex-direction: column;
     }
 </style>

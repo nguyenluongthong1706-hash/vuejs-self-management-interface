@@ -32,7 +32,7 @@
         <h1 class="auth-title">Login</h1>
         <Input :error="errors?.email" type="email" label="Email" placeholder="user@gmail.com" v-model="loginRequest.email"/>
         <Input :error="errors?.password" type="password" label="Password" placeholder="..." v-model="loginRequest.password"/>
-        <div class="btn-box">
+        <div class="btn-group">
             <button class="btn" type="button" @click="handleSubmit">Login</button>
         </div>
     </form>
@@ -48,14 +48,7 @@
     .auth-title{
         text-align: center;
     }
-    .input{
-        width: 100%;
-        padding:3px 6px;
-        margin: 12px 0;
-        border: 1px solid rgb(90, 90, 90);
-        border-radius: 6px;
-    }
-    .btn-box{
+    .btn-group{
         display: flex;
         justify-content: center;
     }

@@ -11,8 +11,8 @@
 
     const props = defineProps<{
         open ?: boolean
-        isEdit ?: boolean
-        userWorkExperience ?: UserWorkExperience
+        isEditing ?: boolean
+        workExperience ?: UserWorkExperience
     }>()
 
     const emit = defineEmits<{
@@ -21,38 +21,38 @@
 
     const toast = useToast()
 
-    const workExperienceList = defineModel<UserWorkExperience[]>()
+    const workExperiences = defineModel<UserWorkExperience[]>()
 
     const errors = ref<any>()
 
-    const selectedWorkExperience = ref<UserWorkExperience>({
+    const currentWorkExperience = ref<UserWorkExperience>({
         id: '',
         position: '',
-        place_at: '',
-        start_date: new Date(),
-        'end_date': new Date(),
-        'user_id': ''
+        organization: '',
+        startDate:'',
+        endDate:'',
+        userId: ''
     })
 
     const handleSubmit = async ()=>{
         errors.value = null
 
-        if(props.isEdit){
+        if(props.isEditing){
             try {
-                const { id, user_id, ...rest } = selectedWorkExperience.value 
-                const res = await updateWorkExperience(selectedWorkExperience.value.id, rest)
+                const { id, userId, ...workExperiencePayload } = currentWorkExperience.value 
+                const res = await updateWorkExperience(currentWorkExperience.value.id, workExperiencePayload)
                 
-                const updatedTech = res.data
+                const updatedWorkExperience = res.data
 
-                const index = workExperienceList.value?.findIndex(
-                    workExperience => workExperience.id === updatedTech.id
+                const index = workExperiences.value?.findIndex(
+                    workExperience => workExperience.id === updatedWorkExperience.id
                 )
                 if (
                     index !== undefined &&
                     index !== -1 &&
-                    workExperienceList.value
+                    workExperiences.value
                 ) {
-                    workExperienceList.value[index] = updatedTech
+                    workExperiences.value[index] = updatedWorkExperience
                 }
 
                 toast.success(res.message)
@@ -63,10 +63,10 @@
             }
         }else{
             try {
-                const { id, user_id, ...rest } = selectedWorkExperience.value 
-                const res = await createWorkExperience(selectedWorkExperience.value)
+                const { id, userId, ...workExperiencePayload } = currentWorkExperience.value 
+                const res = await createWorkExperience(workExperiencePayload)
                 
-                workExperienceList.value?.push(res.data)
+                workExperiences.value?.push(res.data)
 
                 toast.success(res.message)
                 emit('close')
@@ -79,10 +79,10 @@
 
     const handleDelete = async ()=>{
         try {
-            const res = await deleteWorkExperience(selectedWorkExperience.value.id)
+            const res = await deleteWorkExperience(currentWorkExperience.value.id)
 
-            workExperienceList.value = workExperienceList.value?.filter(
-                workExperience => workExperience.id !== selectedWorkExperience.value.id
+            workExperiences.value = workExperiences.value?.filter(
+                workExperience => workExperience.id !== currentWorkExperience.value.id
             )
 
             toast.success(res.message)
@@ -93,18 +93,18 @@
     }
 
     watch(
-        () => [props.isEdit, props.userWorkExperience] as const,
-        ([isEdit, userEducation]) => {
-            if (isEdit &&  userEducation) {
-                selectedWorkExperience.value = { ...userEducation }
+        () => [props.isEditing, props.workExperience] as const,
+        ([isEditing, workExperience]) => {
+            if (isEditing &&  workExperience) {
+                currentWorkExperience.value = { ...workExperience }
             }else {
-                selectedWorkExperience.value = {
+                currentWorkExperience.value = {
                     id: '',
                     position: '',
-                    place_at: '',
-                    start_date: new Date(),
-                    'end_date': new Date(),
-                    'user_id': ''
+                    organization: '',
+                    startDate: '',
+                    endDate: '',
+                    userId: ''
                 }
             }
         },
@@ -114,14 +114,14 @@
 </script>
 <template>
     <BaseModal :open="open" @close="emit('close')">
-        <h1 style="text-align: center;">{{ isEdit ? "Update Work Experience" : "Create Work Experience" }}</h1>
-        <Input label="Position" placeholder="Backend developer" v-model="selectedWorkExperience.position"/>
-        <Input label="Place At" placeholder="Hordford" v-model="selectedWorkExperience.place_at"/>
-        <Input label="Start date" placeholder="11/11/2021" v-model="selectedWorkExperience.start_date" type="date"/>
-        <Input label="End date" placeholder="11/12/2021" v-model="selectedWorkExperience.end_date" type="date"/>
+        <h1 style="text-align: center;">{{ isEditing ? "Update Work Experience" : "Create Work Experience" }}</h1>
+        <Input label="Position" placeholder="Backend developer" v-model="currentWorkExperience.position"/>
+        <Input label="Organization" placeholder="Hodford" v-model="currentWorkExperience.organization"/>
+        <Input label="Start date" placeholder="11/11/2021" v-model="currentWorkExperience.startDate" type="date"/>
+        <Input label="End date" placeholder="11/12/2021" v-model="currentWorkExperience.endDate" type="date"/>
         <div style="display: flex; gap:15px; align-items: center;">
             <button class="btn" @click="handleSubmit">Submit</button>
-            <button v-if="isEdit" class="btn" @click="handleDelete">Delete</button>
+            <button v-if="isEditing" class="btn" @click="handleDelete">Delete</button>
         </div>
     </BaseModal>
 </template>

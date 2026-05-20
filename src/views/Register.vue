@@ -16,7 +16,7 @@
         name : '',
         email: '',
         password: '',
-        password_confirmation: ''
+        passwordConfirmation: ''
     })
 
     const errors = ref<any>()
@@ -38,8 +38,8 @@
         <Input :error="errors?.name" label="Name" placeholder="Nguyen Van B" v-model="registerRequest.name"/>
         <Input :error="errors?.email" type="email" label="Email" placeholder="user@gmail.com" v-model="registerRequest.email"/>
         <Input :error="errors?.password" type="password" label="Password" placeholder="..." v-model="registerRequest.password"/>
-        <Input :error="errors?.password_confirmation" type="password" label="Confirm password" placeholder="..." v-model="registerRequest.password_confirmation"/>
-        <div class="btn-box">
+        <Input :error="errors?.passwordConfirmation" type="password" label="Confirm password" placeholder="..." v-model="registerRequest.passwordConfirmation"/>
+        <div class="btn-group">
             <button class="btn" type="button" @click="handleSubmit">Login</button>
         </div>
     </form>
@@ -55,14 +55,7 @@
     .auth-title{
         text-align: center;
     }
-    .input{
-        width: 100%;
-        padding:3px 6px;
-        margin: 12px 0;
-        border: 1px solid rgb(90, 90, 90);
-        border-radius: 6px;
-    }
-    .btn-box{
+    .btn-group{
         display: flex;
         justify-content: center;
     }

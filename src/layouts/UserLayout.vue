@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import UserHeader from '@components/layout/UserHeader.vue'
-import UserSiteBar from '@components/layout/UserSiteBar.vue'
+import UserSideBar from '@components/layout/UserSideBar.vue'
 </script>
 
 <template>
     <div class="user-container">
-        <UserSiteBar />
+        <UserSideBar />
 
         <div class="main">
             <UserHeader />

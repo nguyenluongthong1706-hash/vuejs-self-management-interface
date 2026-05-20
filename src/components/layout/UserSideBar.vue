@@ -5,22 +5,22 @@
     const router = useRouter()
     const route = useRoute()
 
-    const navs = [
+    const navItems = [
         {name: "Profile", path: "/"},
         {name: "Tech Stack", path: "/tech-stack"}
     ]
 </script>
 <template>
-    <div class="site-bar">
-        <div class="logo-box">
+    <div class="sidebar">
+        <div class="sidebar-logo">
             <img class="logo" :src="logo" alt="">
         </div>
-        <div class="navigate-box">
-        <p class="nav-title">Navigation</p>
-            <div v-for="nav in navs">
+        <div>
+            <p class="nav-title">Navigation</p>
+            <div v-for="nav in navItems">
                 <button 
-                    class="navigation-item"    
-                    :class="{'nav-active' : route.path === nav.path}" 
+                    class="nav-item"    
+                    :class="{'is-active' : route.path === nav.path}" 
                     @click="router.push(nav.path)"
                 >
                     {{ nav.name }}
@@ -30,12 +30,12 @@
     </div>
 </template>
 <style scoped>
-    .site-bar{
+    .sidebar{
         height: 100vh;
         padding: 15px 24px;
         border-right:1px solid gray
     }
-    .logo-box{
+    .sidebar-logo{
         display: flex;
         justify-content: center;
         align-self: center;
@@ -47,7 +47,7 @@
     .nav-title{
         margin: 15px 0;
     }
-    .navigation-item{
+    .nav-item{
         width: 192px;
         padding: 9px 15px;
         margin: 3px 0;
@@ -56,11 +56,11 @@
         border: none;
         text-align: left;
     }
-    .navigation-item:hover{
+    .nav-item:hover{
         background-color: rgb(95, 146, 218);
         color: white;
     }
-    .nav-active{
+    .is-active{
         background-color: rgb(95, 146, 218);
         color: white;
     }

@@ -72,15 +72,25 @@ export interface DeleteTechResponse{
 }
 
 // user tool
-export interface AssignMultipleToolResponse{
+export interface AssignToolsResponse{
     message: string   
     data : Tool [] 
 }
 
+
+export interface UnAssignToolResponse{
+    message: string
+}
+
 // user tech
-export interface AssignMultipleTechResponse{
+export interface AssignTechsResponse{
     message: string  
     data : Tech []  
+}
+
+
+export interface UnAssignTechResponse{
+    message: string
 }
 
 // Education

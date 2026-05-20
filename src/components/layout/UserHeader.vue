@@ -9,14 +9,14 @@
 </script>
 <template>
     <div class="header">
-        <div class="tongLeSiteBar">
+        <div class="sidebar-toggle">
             <button>Expand</button>
         </div>
         <div class="header-info">
             <p>{{route.name }}</p>
             <div class="user-info">
                 <img v-if="userStore.user?.avatar" :src="userStore.user?.avatar" alt="">
-                <div v-else class="avatar h-avatar">NT</div>
+                <div v-else class="avatar avatar-fallback">NT</div>
                 <p>{{ userStore.user?.name }}</p>
             </div>
         </div>
@@ -32,11 +32,11 @@
         border-bottom:1px solid gray;
         background:white;
     }
-    .tongLeSiteBar{
+    .sidebar-toggle{
         padding: 15px 30px;
         border-right: 1px solid rgb(204, 204, 204);
     }
-    .tongLeSiteBar button{
+    .sidebar-toggle button{
         padding: 6px 12px;
     }
     .header-info{
@@ -59,7 +59,7 @@
         border-radius: 100%;
         margin-right: 15px;
     }
-    .h-avatar{
+    .avatar-fallback{
         background-color: aquamarine;
         color: blue;
         font-size: 12px;

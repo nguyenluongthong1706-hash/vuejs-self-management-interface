@@ -1,31 +1,26 @@
 <script setup lang="ts">
-    import { computed } from "vue";
-
     import type { Tool, Tech } from "@type/entities";
     
-    const {size = "big", isTool = false, tool, tech} = defineProps<{
-        size ?: string
-        isTool ? : boolean
-        tool ?: Tool
-        tech ?: Tech
-    }>()
-
-    const currentObject = computed(()=>{
-        if(isTool){
-            return tool
-        }else{
-            return tech
+    const props = withDefaults(
+        defineProps<{
+            size ?: 'big' | 'small'
+            isTool ? : boolean
+            item ?: Tool | Tech
+        }>(), 
+        {
+            size: 'big',
+            isTool: false
         }
-    })
+    );
 </script>
 <template>
-    <div class="tech-item" :class="{'small-size' : size === 'small'}">
-        <img :class="{'small-size-img' : size === 'small'}" :src="currentObject?.icon" alt="">
-        <p :class="{'small-size-text' : size === 'small'}">{{ currentObject?.name }}</p>
+    <div class="technology-item" :class="{'technology-item--small' : props.size === 'small'}">
+        <img :class="{'technology-item--small__icon' : props.size === 'small'}" :src="props.item?.icon" alt="">
+        <p :class="{'technology-item--small__name' : props.size === 'small'}">{{ props.item?.name }}</p>
     </div>
 </template>
 <style scoped>
-    .tech-item{
+    .technology-item{
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -36,23 +31,23 @@
         border-radius: 12px;
         box-shadow: 0px 0px 6px rgba(0,0,0,0.3);
     }
-    .small-size{
+    .technology-item--small{
         width: 75px !important;
     }
-    .small-size-text{
+    .technology-item--small__name{
         font-size: 15px !important;
         font-weight: 600 !important;
     }
-    .small-size-img{
+    .technology-item--small__icon{
         width: 30px !important;
         height: 30px !important;
     }
-    .tech-item img{
+    .technology-item img{
         width: 60px;
         height: 60px;
         object-fit: contain;
     }
-    .tech-item p{
+    .technology-item p{
         font-size: 21px;
         font-weight: 700;
     }
