@@ -1,4 +1,4 @@
-import type { Location } from "./entities"
+import type { Location, ProductLink, ProductTech } from "./entities"
 
 export interface RegisterRequest{
     name: string
@@ -85,3 +85,39 @@ export type CreateWorkExperienceRequest = WorkExperiencePayload
 
 
 export type UpdateWorkExperienceRequest = WorkExperiencePayload
+
+// User Product
+export interface CreateProductRequest{
+    name: string
+    description: string
+    task: string
+    image: File
+    startDate: string
+    endDate: string
+    links: {title:string, url: string}[]
+    techs: {techId: string}[]
+}
+
+
+export interface UpdateProductRequest{
+    name: string
+    description: string
+    task: string
+    image?: File
+    startDate: string
+    endDate: string
+}
+
+export interface AssignProductTechRequest{
+    techs: {techId : string}[]
+}
+
+export interface CreateProductLinkRequest{
+    title : string
+    url: string
+}
+
+export interface UpdateProductLinkRequest{
+    title : string
+    url: string
+}

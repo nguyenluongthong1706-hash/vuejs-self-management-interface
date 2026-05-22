@@ -84,7 +84,6 @@ export interface ProductLink {
 
 export interface ProductTech{
     id: string
-    techId : string
     name : string
     icon: string
 }

@@ -71,7 +71,10 @@
             }
         }else{
             try {
-                if (!toolForm.value.icon) return
+                if (!toolForm.value.icon){
+                    toast.error("Icon is required")
+                    return
+                }
                 const res = await createTool({
                     name: toolForm.value.name,
                     icon: toolForm.value.icon
@@ -106,6 +109,7 @@
             if (isEditing && tool) {
                 currentTool.value = { ...tool }
                 toolForm.value.name = tool.name
+                errors.value = ""
             }else {
                 currentTool.value = {
                     id: '',
@@ -116,6 +120,7 @@
                     name: '',
                     icon: undefined
                 }
+                errors.value = ""
             }
         },
         { immediate: true }

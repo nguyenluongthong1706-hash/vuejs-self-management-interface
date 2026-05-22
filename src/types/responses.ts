@@ -1,4 +1,4 @@
-import type { User, Tool, Tech, UserEducation, UserWorkExperience } from "./entities"
+import type { User, Tool, Tech, UserEducation, UserWorkExperience, UserProduct, ProductLink } from "./entities"
 
 export interface RegisterResponse{
     message : string
@@ -136,4 +136,50 @@ export interface UpdateWorkExperienceResponse{
 
 export interface DeleteWorkExperienceResponse{
     message : string
+}
+
+// WorkExperience
+export interface GetUserProductResponse{
+    message : string
+    data : UserProduct[]
+}
+
+
+export interface CreateProductResponse{
+    message : string
+    data : UserProduct
+}
+
+
+export interface UpdateProductResponse{
+    message : string
+    data : UserProduct
+}
+
+export interface DeleteProductResponse{
+    message : string
+}
+
+export interface AssignProductTechResponse{
+    message : string
+    data : Tech []  
+}
+
+export interface UnassignProductTechResponse{
+    message: string
+}
+
+export interface CreateProductLinkResponse{
+    message: string
+    data: ProductLink
+}
+
+export interface UpdateProductLinkResponse{
+    message: string
+    data: ProductLink
+}
+
+export interface DeleteProductLinkResponse{
+    message: string
+    data: ProductLink
 }

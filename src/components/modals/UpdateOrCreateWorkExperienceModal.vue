@@ -97,6 +97,7 @@
         ([isEditing, workExperience]) => {
             if (isEditing &&  workExperience) {
                 currentWorkExperience.value = { ...workExperience }
+                errors.value = ""
             }else {
                 currentWorkExperience.value = {
                     id: '',
@@ -106,6 +107,7 @@
                     endDate: '',
                     userId: ''
                 }
+                errors.value = ""
             }
         },
         { immediate: true }

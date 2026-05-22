@@ -1,27 +1,30 @@
 <script setup lang="ts">
     import logo from "@assets/logo.svg" 
+
+    import type { UserProduct } from "@type/entities";
+
+    const props = defineProps<{product: UserProduct}>()
 </script>
 <template>
     <div class="product-card">
-        <img class="product-image" :src="logo" alt="">
+        <img class="product-image" :src="product.image" alt="">
         <div class="card-body">
-            <p class="card-title card-text nowrap-text">Job Seeking</p>
+            <p class="card-title card-text nowrap-text">{{ props.product.name }}</p>
             <p class="card-text date-text">
-                <span>4/5/2025</span> - <span>30/8/2025</span>
+                <span>{{ props.product.startDate }}</span> - <span>{{ props.product.endDate }}</span>
             </p>
-            <p class="card-text two-line-text">Description...</p>
-            <p class="card-text two-line-text">Go to <a href="">Live Demo</a></p>
+            <p class="card-text two-line-text">{{ props.product.description }}</p>
+            <p class="card-text two-line-text">link <a target="_blank" @click.stop="" v-for="link in props.product.productLinks" :href="link.url" :key="link.id"> &spades;{{ link.title }}&sbquo;</a></p>
             <div class="tech-list">
-                <img :src="logo" alt="icon" class="tech-icon">
-                <img :src="logo" alt="icon" class="tech-icon">
-                <div class="tech-overflow" >+1</div>
+                <img v-for="tech in props.product.productTechs.slice(0, 2)" :src="tech.icon" alt="icon" class="tech-icon" :key="tech.id">
+                <div v-if="props.product.productTechs.length > 2" class="tech-overflow" >+ {{ props.product.productTechs.length - 2 }}</div>
             </div>
         </div>
     </div>
 </template>
 <style scoped>
     .product-card{
-        max-width: 330px;
+        max-width: 270px;
         padding: 9px 15px;
         border-radius: 12px;
         box-shadow: 0px 0px 6px rgba(0,0,0,0.3);
@@ -32,7 +35,7 @@
     }
     .product-image{
         width: 100%;
-        height: 240px;
+        height: 150px;
         object-fit: contain;
     }
     .card-title{

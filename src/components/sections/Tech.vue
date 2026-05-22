@@ -12,7 +12,8 @@
         defineProps<{
             size ?: 'big' | 'small'
             isTool ? : boolean
-            allowUnassign ?: boolean
+            allowUnassignUser ?: boolean
+            allowUnassignProduct ?: boolean
             item ?: Tool | Tech
         }>(), 
         {
@@ -22,10 +23,14 @@
         }
     );
 
+    const emit = defineEmits<{
+        (e:'unassigned', techId:string):void
+    }>()
+
     const items = defineModel<Tool[] | Tech[]>()
 
     const handleUnassign = async ()=>{
-        if(props.item && props.allowUnassign){
+        if(props.item && props.allowUnassignUser){
             if(props.isTool ){
                 try {
                     const res = await unassignTool(props.item.id)
@@ -51,6 +56,8 @@
                     toast.error(error.response?.data?.message)
                 }
             }
+        }else if(props.item && props.allowUnassignProduct){
+            emit('unassigned', props.item.id)
         }
     }
 </script>
@@ -58,7 +65,7 @@
     <div class="technology-item" :class="{'technology-item--small' : props.size === 'small'}">
         <img :class="{'technology-item--small__icon' : props.size === 'small'}" :src="props.item?.icon" alt="">
         <p class="nowrap-text" :class="{'technology-item--small__name' : props.size === 'small'}">{{ props.item?.name }}</p>
-        <button v-if="allowUnassign" @click.stop="handleUnassign" class="delete-btn">X</button>
+        <button v-if="allowUnassignUser || allowUnassignProduct" @click.stop="handleUnassign" class="delete-btn">X</button>
     </div>
 </template>
 <style scoped>

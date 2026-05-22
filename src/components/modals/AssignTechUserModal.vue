@@ -83,9 +83,9 @@
                 const toolAssignments: { toolId: string }[] =
                     validSelectedIds.map(idValue => ({
                         toolId: idValue
-                    }))
+                    })
+                )
 
-                console.log(toolAssignments)
                 const res = await assignTools({
                     tools: toolAssignments
                 })
@@ -97,7 +97,8 @@
                 const techAssignments: { techId: string }[] =
                     validSelectedIds.map(idValue => ({
                         techId: idValue
-                    }))
+                    })
+                )
                 const res = await assignTechs({
                     techs: techAssignments
                 })
@@ -114,17 +115,21 @@
 
     watch(
         [
+            () => props.open,
             () => props.isTool,
             () => props.userTools,
             () => props.userTechs
         ],
         () => {
             if (props.isTool) {
-            selectedIds.value = props.userTools?  props.userTools.map(userTool => userTool.id) : []
-            resourceType .value = 'tools'
+                selectedIds.value = props.userTools?  props.userTools.map(userTool => userTool.id) : []
+                resourceType .value = 'tools'
             } else {
-            selectedIds.value = props.userTechs? props.userTechs.map(userTech => userTech.id) : []
-            resourceType .value = 'techs'
+                selectedIds.value = props.userTechs? props.userTechs.map(userTech => userTech.id) : []
+                resourceType .value = 'techs'
+            }
+            if(props.open){
+                errors.value = ""
             }
         },
         { immediate: true }

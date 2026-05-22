@@ -96,6 +96,7 @@
         ([isEditing, education]) => {
             if (isEditing &&  education) {
                 currentEducation.value = { ...education }
+                errors.value = ""
             }else {
                 currentEducation.value = {
                     id: '',
@@ -105,6 +106,7 @@
                     endDate:'',
                     userId: ''
                 }
+                errors.value = ""
             }
         },
         { immediate: true }
