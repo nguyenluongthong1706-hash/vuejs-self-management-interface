@@ -190,3 +190,6 @@ export interface DeleteProductLinkResponse{
     message: string
     data: ProductLink
 }
+
+//
+export type FormErrors = Record<string, string[]>

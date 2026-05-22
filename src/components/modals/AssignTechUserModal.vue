@@ -6,6 +6,7 @@
     import Input from '@components/ui/input/Input.vue';
 
     import type { Tool, Tech } from '@type/entities';
+    import type { FormErrors } from "@type/responses"
 
     import { getTools, assignTools  } from '@services/toolService';
     import { getTechs, assignTechs } from '@services/techService';
@@ -25,19 +26,20 @@
     }>()
 
     const toast = useToast()
-    const loading = ref(false)
+    const isFetchLoading = ref(false)
+    const isSubmitLoading = ref(false)
 
     const resourceType  = ref<'techs' | 'tools'>('techs')
     const selectedIds = ref<string[]>([])
 
     const tools = ref<Tool[]>([])
     const techs = ref<Tech[]>([])
-    const errors = ref<any>()
+    const errors = ref<FormErrors>({})
     
 
     const fetchOptions = async ()=>{
         try {
-            loading.value = true
+            isFetchLoading.value = true
             const [toolRes, techRes] = await Promise.all([
                 getTools(),
                 getTechs()
@@ -47,12 +49,12 @@
         } catch (error : any) {
             toast.error(error.response?.data?.message || "get data fail")
         }finally {
-            loading.value = false
+            isFetchLoading.value = false
         }
     }
     onMounted(fetchOptions)
 
-    const currentOptions = computed(() => {
+    const currentOptions = computed<{ key: string; value: string; disabled?: boolean}[]>(() => {
         if (props.isTool) {
             return tools.value.map(tool => ({
             key: tool.id,
@@ -69,15 +71,18 @@
     })
 
     const handleSubmit = async () => {
+        if (isSubmitLoading.value) return
+
         const validSelectedIds = selectedIds.value.filter(idValue => {
             const matchedOption = currentOptions.value.find(
                 option => option.key === idValue
             )
-
             return matchedOption ? !matchedOption.disabled : false
         })
 
         try {
+            isSubmitLoading.value = true
+
             if (props.isTool) {
 
                 const toolAssignments: { toolId: string }[] =
@@ -110,6 +115,8 @@
         } catch (error: any) {
             errors.value = error.response?.data?.errors
             toast.error(error.response?.data?.message)
+        }finally {
+            isSubmitLoading.value = false
         }
     }
 
@@ -129,7 +136,7 @@
                 resourceType .value = 'techs'
             }
             if(props.open){
-                errors.value = ""
+                errors.value = {}
             }
         },
         { immediate: true }
@@ -141,13 +148,15 @@
         <h1 style="text-align: center;">{{ isTool ? "Assign Tool" : "Assign Languages or Framework" }}</h1>
         <div>
             <Input 
-                :error="errors?.[resourceType ]"
+                :error="errors?.[resourceType ]?.[0]"
                 type="checkbox" 
                 v-model="selectedIds" 
                 :label="isTool ? 'Tool' : 'Languages or Framework' " 
                 :options="currentOptions"
             />
-            <button :disabled="loading" class="btn" @click="handleSubmit">{{ loading ? "Loading" : "Submit" }}</button>
+            <button :disabled="isFetchLoading || isSubmitLoading" class="btn" @click="handleSubmit">
+                {{ isSubmitLoading ? "Loading..." : "Submit" }}
+            </button>
         </div>
     </BaseModal>
 </template>

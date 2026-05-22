@@ -6,6 +6,7 @@
     import Input from '@components/ui/input/Input.vue';
 
     import type { Tool as ToolType } from '@type/entities';
+    import type { FormErrors } from "@type/responses"
 
     import { createTool, updateTool, deleteTool } from '@services/toolService';
 
@@ -23,7 +24,10 @@
 
     const tools  = defineModel<ToolType[]>()
 
-    const errors = ref<any>()
+    const isSubmitLoading = ref(false)
+    const isDeleteLoading = ref(false)
+
+    const errors = ref<FormErrors>()
 
     const currentTool = ref<ToolType>({
         id: '',
@@ -37,19 +41,21 @@
     })
 
     const handleSubmit = async ()=>{
-        errors.value = null
+        if (isSubmitLoading.value) return
 
-        if(props.isEditing){
-            
-            const updatePayload:{name: string, icon?: File} =  {
-                name: toolForm.value.name
-            }
-            if(toolForm.value.icon){
-                updatePayload.icon = toolForm.value.icon
-            }
-            try {
+        try {
+            isSubmitLoading.value = true
+            errors.value = {}
+
+            if(props.isEditing){
+                const updatePayload:{name: string, icon?: File} =  {
+                    name: toolForm.value.name
+                }
+                if(toolForm.value.icon){
+                    updatePayload.icon = toolForm.value.icon
+                }
                 const res = await updateTool(currentTool.value.id, updatePayload)
-                
+            
                 const updatedTool = res.data
 
                 const index = tools .value?.findIndex(
@@ -64,13 +70,7 @@
                 }
 
                 toast.success(res.message)
-                emit('close')
-            } catch (error: any) {
-                errors.value = error.response?.data?.errors
-                toast.error(error.response?.data?.message)
-            }
-        }else{
-            try {
+            }else{
                 if (!toolForm.value.icon){
                     toast.error("Icon is required")
                     return
@@ -80,18 +80,23 @@
                     icon: toolForm.value.icon
                 })
                 
-                tools .value?.push(res.data)
+                tools.value?.push(res.data)
                 toast.success(res.message)
-                emit('close')
-            } catch (error: any) {
-                errors.value = error.response?.data?.errors
-                toast.error(error.response?.data?.message)
             }
+            emit('close')
+        } catch (error: any) {
+            errors.value = error.response?.data?.errors
+            toast.error(error.response?.data?.message)
+        }finally {
+            isSubmitLoading.value = false
         }
     }
 
     const handleDelete = async ()=>{
+        if (isDeleteLoading.value) return
+
         try {
+            isDeleteLoading.value = true
             const res = await deleteTool(currentTool.value.id)
             tools .value = tools .value?.filter(
                 tool => tool.id !== currentTool.value.id
@@ -100,6 +105,8 @@
             emit('close')
         } catch (error:any) {
             toast.error(error.response?.data?.message)
+        }finally {
+            isDeleteLoading.value = false
         }
     }
 
@@ -109,7 +116,7 @@
             if (isEditing && tool) {
                 currentTool.value = { ...tool }
                 toolForm.value.name = tool.name
-                errors.value = ""
+                errors.value = {}
             }else {
                 currentTool.value = {
                     id: '',
@@ -120,7 +127,7 @@
                     name: '',
                     icon: undefined
                 }
-                errors.value = ""
+                errors.value = {}
             }
         },
         { immediate: true }
@@ -130,12 +137,16 @@
 <template>
     <BaseModal :open="open" @close="emit('close')">
         <h1 style="text-align: center;">{{ isEditing ? "Update tool" : "Create new tool" }}</h1>
-        <Input :error="errors?.name" label="Title" placeholder="Vs Code" v-model="toolForm.name"/>
-        <Input :error="errors?.icon" label="Icon Image" v-model="toolForm.icon" type="file"/>
+        <Input :error="errors?.name?.[0]" label="Title" placeholder="Vs Code" v-model="toolForm.name"/>
+        <Input :error="errors?.icon?.[0]" label="Icon Image" v-model="toolForm.icon" type="file"/>
         <img style="width: 60px; object-fit: contain;" :src="currentTool.icon" alt="">
         <div style="display: flex; gap:15px; align-items: center;">
-            <button class="btn" @click="handleSubmit">Submit</button>
-            <button v-if="isEditing" class="btn" @click="handleDelete">Delete</button>
+            <button class="btn" :disabled="isSubmitLoading" @click="handleSubmit">
+                 {{ isSubmitLoading ? "Loading..." : "Submit" }}
+            </button>
+            <button v-if="isEditing" class="btn" :disabled="isDeleteLoading" @click="handleDelete">
+                 {{ isDeleteLoading ? "Deleting..." : "Delete" }}
+            </button>
         </div>
     </BaseModal>
 </template>

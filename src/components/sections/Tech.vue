@@ -1,4 +1,5 @@
 <script setup lang="ts">
+    import { ref } from "vue"
     import { useToast } from "vue-toastification";
     
     import type { Tool, Tech } from "@type/entities";
@@ -15,6 +16,8 @@
             allowUnassignUser ?: boolean
             allowUnassignProduct ?: boolean
             item ?: Tool | Tech
+            loading?: boolean
+
         }>(), 
         {
             size: 'big',
@@ -23,6 +26,8 @@
         }
     );
 
+    const isUnassignUserItem = ref<boolean>(false)
+
     const emit = defineEmits<{
         (e:'unassigned', techId:string):void
     }>()
@@ -30,9 +35,12 @@
     const items = defineModel<Tool[] | Tech[]>()
 
     const handleUnassign = async ()=>{
-        if(props.item && props.allowUnassignUser){
-            if(props.isTool ){
-                try {
+        if (isUnassignUserItem.value) return
+        if(props.item && props.allowUnassignUser) {
+            try {
+                isUnassignUserItem.value = true
+                if(props.isTool ){
+                    
                     const res = await unassignTool(props.item.id)
 
                     items.value = items.value?.filter(itemValue => 
@@ -40,11 +48,7 @@
                     )
 
                     toast.success(res.message)
-                } catch (error: any) {
-                    toast.error(error.response?.data?.message)
-                }
-            }else{
-                try {
+                }else{
                     const res = await unassignTech(props.item.id)
 
                     items.value = items.value?.filter(itemValue => 
@@ -52,9 +56,11 @@
                     )
 
                     toast.success(res.message)
-                } catch (error: any) {
-                    toast.error(error.response?.data?.message)
                 }
+            } catch (error: any) {
+                toast.error(error.response?.data?.message)
+            } finally {
+                isUnassignUserItem.value = false
             }
         }else if(props.item && props.allowUnassignProduct){
             emit('unassigned', props.item.id)
@@ -65,7 +71,14 @@
     <div class="technology-item" :class="{'technology-item--small' : props.size === 'small'}">
         <img :class="{'technology-item--small__icon' : props.size === 'small'}" :src="props.item?.icon" alt="">
         <p class="nowrap-text" :class="{'technology-item--small__name' : props.size === 'small'}">{{ props.item?.name }}</p>
-        <button v-if="allowUnassignUser || allowUnassignProduct" @click.stop="handleUnassign" class="delete-btn">X</button>
+        <button 
+            v-if="allowUnassignUser || allowUnassignProduct" 
+            :disabled="loading || isUnassignUserItem"
+            @click.stop="handleUnassign" 
+            class="delete-btn"
+            >
+                {{ loading || isUnassignUserItem ? "..." : "X" }}
+            </button>
     </div>
 </template>
 <style scoped>

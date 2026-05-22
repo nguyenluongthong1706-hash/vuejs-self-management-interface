@@ -4,7 +4,7 @@
     interface  InputOption {
         key: string
         value : string
-        [key: string] : any
+        disabled?: boolean
     }
 
     const {label, placeholder = "", type = "text", style="", error = "", readonly = false, options} = defineProps<{
@@ -17,7 +17,7 @@
         options ?: InputOption[]
     }>()
 
-    const modelValue = defineModel<string | File | Date | null | String[]>()
+    const modelValue = defineModel<string | File | Date | null | string[]>()
 
     const handleFileChange = (event: Event) => {
         const target = event.target as HTMLInputElement

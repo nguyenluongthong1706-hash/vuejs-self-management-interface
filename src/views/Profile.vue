@@ -26,18 +26,33 @@
         UserWorkExperience as WorkExperienceType ,
         UserProduct as ProductType
     } from "@type/entities";
+    
+    import type { FormErrors } from "@type/responses"
+    import type { UpdateAccountRequest } from "@type/requests"
 
-    import { getAccount, updateAccount, uploadAvatar } from "@services/accountService";
-    import { getUserTools } from "@services/toolService";
-    import { getUserTechs } from "@services/techService";
-    import { getUserEducation } from "@services/educationService";
-    import { getUserWorkExperience } from "@services/workExperienceService";
-    import { getUserProduct } from "@services/productService";
+    import { updateAccount, uploadAvatar } from "@services/accountService";
 
     import { useUserStore } from "@stores/useUserStore";
+    import { storeToRefs } from "pinia"
+    import { useProfileStore } from "@stores/useProfileStore"
+
+    const profileStore = useProfileStore()
+
+    const {
+        isLoading: isPageLoading,
+        user,
+        tools,
+        techs,
+        educations,
+        workExperiences,
+        products
+    } = storeToRefs(profileStore)
 
     const toast = useToast()
     const userStore = useUserStore()
+
+    const updateProfileLoading = ref(false)
+    const uploadAvatarLoading = ref(false)
 
     const isToolModal = ref<boolean>(false)
     const isTechModal = ref<boolean>(false)
@@ -51,26 +66,13 @@
     // user
     const fileInput = ref<HTMLInputElement | null>(null)
     
-    const userFormError = ref<any>()
-    
-    const user = ref<User>({
-        id: '',
-        name: '',
-        email: '',
-        dateOfBirth: '',
-        gender: 'male',
-        field: '',
-        slogan: '',
-        aboutMe: '',
-        avatar: '',
-        facebookLink:'',
-        linkedinLink:'',
-        githubLink: '',
-        location : {province: '', district:'', ward:'', detail:''}
-    })
+    const userFormError = ref<FormErrors>()
 
     const handleUserSubmit = async ()=>{
-        const userFormField = {
+        if (updateProfileLoading.value) return
+        if (!user.value) return
+
+        const userFormField: UpdateAccountRequest = {
             name : user.value.name,
             dateOfBirth : user.value.dateOfBirth,
             gender : user.value.gender,
@@ -88,13 +90,16 @@
             }
         }
         try {
-            userFormError.value = ''
+            updateProfileLoading.value = true
+            userFormError.value = {}
             const res =  await updateAccount(userFormField)
             userStore.updateUser(user.value)
             toast.success(res.message)
         } catch (error: any) {
             userFormError.value = error.response?.data?.errors
             toast.error(error.response?.data?.message)
+        }finally {
+            updateProfileLoading.value = false
         }
     }
 
@@ -103,6 +108,8 @@
     }
 
     const handleUploadAvatar = async (event: Event) => {
+        if (uploadAvatarLoading.value) return
+
         const target = event.target as HTMLInputElement
 
         if (!target.files || target.files.length === 0) return
@@ -110,6 +117,8 @@
         const file = target.files[0]
 
         try {
+            uploadAvatarLoading.value = true
+
             if(!file) return
             const res = await uploadAvatar({
                 avatar: file
@@ -118,184 +127,171 @@
             user.value = res.data
 
             userStore.updateUser(user.value)
-            
+
             toast.success(res.message)
         }
         catch (error: any) {
            toast.error(error.response?.data?.message || "get account fail")
+        } finally {
+            uploadAvatarLoading.value = false
         }
     }
 
     // user tool
-    const tools = ref<ToolType[]>([])
 
     // user tech
-    const techs = ref<TechType[]>([])
 
     // user Education
-    const educations = ref<EducationType[]>([])
     const editEducation = ref<EducationType | undefined>()
 
     // user Work Experience
-    const workExperiences = ref<WorkExperienceType[]>([])
     const editWorkExperience = ref<WorkExperienceType | undefined>()
 
     // User Product
-    const products = ref<ProductType[]>([])
     const editProduct = ref<ProductType | undefined>()
 
-    const fetchData = async () =>{
-        try {
-            const [userRes, toolRes, techRes, educationRes, workExperienceRes, productRes] = await Promise.all([
-                getAccount(),
-                getUserTools(),
-                getUserTechs(),
-                getUserEducation(),
-                getUserWorkExperience(),
-                getUserProduct()
-            ])
-            user.value = userRes.data
-            tools.value = toolRes.data
-            techs.value = techRes.data
-            educations.value = educationRes.data
-            workExperiences.value = workExperienceRes.data
-            products.value = productRes.data
-        } catch (error:any) {
-            toast.error(error.response?.data?.message || "get account fail")
-        }
-    }
-
-    onMounted(fetchData)
+    onMounted(() => {
+        profileStore.fetchProfile()
+    })
 
 
 </script>
 <template>
     <div class="profile-container">
-        <div class="avatar-box">
-            <img class="avatar" :src="user.avatar || logo" alt="">
+        <div v-if="isPageLoading" class="page-loading">
+            Loading...
+        </div>
+        <template v-else-if="user">
+            <div class="avatar-box">
+                <img class="avatar" :src="user?.avatar || logo" alt="">
 
-            <div class="profile-action">
-                <button @click="handleChooseAvatar">Upload</button>
-                <input
-                    ref="fileInput"
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    @change="handleUploadAvatar"
-                >
-            </div>
-        </div>
-        <!-- Basic Information -->
-        <div class="box">
-            <p class="title">Personal Information</p>
-            <!-- Basic Information -->
-            <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-                <Input :error="userFormError?.name" v-model="user.name" placeholder="N.L.T" label="Name"/>
-                <Input :error="userFormError?.dateOfBirth" v-model="user.dateOfBirth" label="Date of birth" type="date"/>
-                <Input :error="userFormError?.gender" v-model="user.gender" label="Gender" type="radio" :options="[{key: 'male', value: 'Male'},{key:'female', value: 'Female'}]"/>
-            </div>
-            <!-- Other info -->
-            <Input :error="userFormError?.email" v-model="user.email" placeholder="user@gmail.com" label="Email" type="email" readonly/>
-            <Input :error="userFormError?.field" v-model="user.field" placeholder="Information technology" label="Field"/>
-            <Input :error="userFormError?.slogan" v-model="user.slogan" placeholder="Try and try" label="Slogan"/>
-            <Textarea :error="userFormError?.aboutMe" v-model="user.aboutMe" placeholder="I am ...." label="About me"/>
-            <!-- Address -->
-            <div>
-                <p style="font-size: 21px; font-weight: bold; margin-bottom: 18px;">Address</p>
-                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-                    <Input :error="userFormError?.location?.province" v-model="user.location.province" placeholder="da nang" label="Province"/>
-                    <Input :error="userFormError?.location?.district" v-model="user.location.district" placeholder="Cam le" label="District"/>
-                    <Input :error="userFormError?.location?.ward" v-model="user.location.ward" placeholder="Hai Chau" label="Ward"/>
+                <div class="profile-action">
+                    <button :disabled="uploadAvatarLoading" @click="handleChooseAvatar">
+                        {{ uploadAvatarLoading ? "Uploading..." : "Upload" }}
+                    </button>
+                    <input
+                        ref="fileInput"
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        @change="handleUploadAvatar"
+                    >
                 </div>
-                <Input :error="userFormError?.location?.detail" v-model="user.location.detail" style="width: 100%;" placeholder="floor 2, building 2, xxx street,..." label="Detail"/>
             </div>
-            <!-- Meta -->
-            <p style="font-size: 21px; font-weight: bold; margin-bottom: 18px;">Meta</p>
-            <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-                <Input :error="userFormError?.facebookLink" v-model="user.facebookLink" placeholder="Link facebook" label="Link facebook"/>
-                <Input :error="userFormError?.linkedinLink" v-model="user.linkedinLink" placeholder="Link linkedin" label="Link linkedin"/>
-                <Input :error="userFormError?.githubLink" v-model="user.githubLink" placeholder="Link github" label="Link github"/>
+            <!-- Basic Information -->
+            <div class="box">
+                <p class="title">Personal Information</p>
+                <!-- Basic Information -->
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                    <Input :error="userFormError?.name?.[0]" v-model="user.name" placeholder="N.L.T" label="Name"/>
+                    <Input :error="userFormError?.dateOfBirth?.[0]" v-model="user.dateOfBirth" label="Date of birth" type="date"/>
+                    <Input :error="userFormError?.gender?.[0]" v-model="user.gender" label="Gender" type="radio" :options="[{key: 'male', value: 'Male'},{key:'female', value: 'Female'}]"/>
+                </div>
+                <!-- Other info -->
+                <Input :error="userFormError?.email?.[0]" v-model="user.email" placeholder="user@gmail.com" label="Email" type="email" readonly/>
+                <Input :error="userFormError?.field?.[0]" v-model="user.field" placeholder="Information technology" label="Field"/>
+                <Input :error="userFormError?.slogan?.[0]" v-model="user.slogan" placeholder="Try and try" label="Slogan"/>
+                <Textarea :error="userFormError?.aboutMe?.[0]" v-model="user.aboutMe" placeholder="I am ...." label="About me"/>
+                <!-- Address -->
+                <div>
+                    <p style="font-size: 21px; font-weight: bold; margin-bottom: 18px;">Address</p>
+                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                        <Input :error="userFormError?.['location?.province']?.[0]" v-model="user.location.province" placeholder="da nang" label="Province"/>
+                        <Input :error="userFormError?.['location?.district']?.[0]" v-model="user.location.district" placeholder="Cam le" label="District"/>
+                        <Input :error="userFormError?.['location?.ward']?.[0]" v-model="user.location.ward" placeholder="Hai Chau" label="Ward"/>
+                    </div>
+                    <Input :error="userFormError?.['location?.detail']?.[0]" v-model="user.location.detail" style="width: 100%;" placeholder="floor 2, building 2, xxx street,..." label="Detail"/>
+                </div>
+                <!-- Meta -->
+                <p style="font-size: 21px; font-weight: bold; margin-bottom: 18px;">Meta</p>
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                    <Input :error="userFormError?.facebookLink?.[0]" v-model="user.facebookLink" placeholder="Link facebook" label="Link facebook"/>
+                    <Input :error="userFormError?.linkedinLink?.[0]" v-model="user.linkedinLink" placeholder="Link linkedin" label="Link linkedin"/>
+                    <Input :error="userFormError?.githubLink?.[0]" v-model="user.githubLink" placeholder="Link github" label="Link github"/>
+                </div>
+                <button @click="handleUserSubmit" class="btn" :disabled="updateProfileLoading">
+                    {{ updateProfileLoading ? "Loading..." : "Edit Profile" }}
+                </button>
             </div>
-            <button @click="handleUserSubmit" class="btn">Edit</button>
-        </div>
-        <!-- Tool -->
-        <div class="box">
-            <div class="box-header">
-                <p class="title">Tools</p>
-                <button class="btn" @click="isToolModal = true">Assign tool</button>
+            <!-- Tool -->
+            <div class="box">
+                <div class="box-header">
+                    <p class="title">Tools</p>
+                    <button class="btn" @click="isToolModal = true">Assign tool</button>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap:12px;">
+                    <Tech
+                        is-tool
+                        allow-unassign-user
+                        v-for="tool in tools" 
+                        :key="tool.id"
+                        :item="tool"
+                        v-model="tools"
+                    />
+                </div>
             </div>
-            <div style="display: flex; flex-wrap: wrap; gap:12px;">
-                <Tech
-                    is-tool
-                    allow-unassign-user
-                    v-for="tool in tools" 
-                    :key="tool.id"
-                    :item="tool"
-                    v-model="tools"
-                />
+            <!-- Tech Stack -->
+            <div class="box">
+                <div class="box-header">
+                    <p class="title">Languages and frameworks</p>
+                    <button class="btn" @click="isTechModal = true">Assign tech</button>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap:12px;">
+                    <Tech
+                        allow-unassign-user
+                        v-for="tech in techs" 
+                        :key="tech.id"
+                        :item="tech"
+                        v-model="techs"
+                    />
+                </div>
             </div>
-        </div>
-        <!-- Tech Stack -->
-        <div class="box">
-            <div class="box-header">
-                <p class="title">Languages and frameworks</p>
-                <button class="btn" @click="isTechModal = true">Assign tech</button>
+            <!-- Educations -->
+            <div class="box">
+                <div class="box-header">
+                    <p class="title">Educations</p>
+                    <button class="btn" @click="{isEducationModal = true; isEditEducationModal = false}">Add new</button>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                    <Education
+                        v-for="education in educations" 
+                        :key="education.id"
+                        :education="education"
+                        @click="{isEducationModal= true; isEditEducationModal = true; editEducation = education}"
+                    />
+                </div>
             </div>
-            <div style="display: flex; flex-wrap: wrap; gap:12px;">
-                <Tech
-                    allow-unassign-user
-                    v-for="tech in techs" 
-                    :key="tech.id"
-                    :item="tech"
-                    v-model="techs"
-                />
+            <!-- Work Experiences -->
+            <div class="box">
+                <div class="box-header">
+                    <p class="title">Work Experiences</p>
+                    <button class="btn" @click="{isWorkExperienceModal = true; isEditWorkExperienceModal = false}">Add new</button>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                    <Experience
+                        v-for="workExperience in workExperiences" 
+                        :key="workExperience.id"
+                        :work-experience="workExperience"
+                        @click="{isWorkExperienceModal= true; isEditWorkExperienceModal = true; editWorkExperience = workExperience}"
+                    />
+                </div>
             </div>
-        </div>
-        <!-- Educations -->
-        <div class="box">
-            <div class="box-header">
-                <p class="title">Educations</p>
-                <button class="btn" @click="{isEducationModal = true; isEditEducationModal = false}">Add new</button>
+            <!-- Product -->
+            <div class="box">
+                <div class="box-header">
+                    <p class="title">Products</p>
+                    <button class="btn" @click="isCreateUserProductModal = true">Add new</button>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+                    <Product 
+                        v-for="product in products"
+                        :key="product.id"
+                        @click="{isUpdateUserProductModal = true; editProduct = product}" 
+                        :product="product"
+                    />
+                </div>
             </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                <Education
-                    v-for="education in educations" 
-                    :key="education.id"
-                    :education="education"
-                    @click="{isEducationModal= true; isEditEducationModal = true; editEducation = education}"
-                />
-            </div>
-        </div>
-        <!-- Work Experiences -->
-        <div class="box">
-            <div class="box-header">
-                <p class="title">Work Experiences</p>
-                <button class="btn" @click="{isWorkExperienceModal = true; isEditWorkExperienceModal = false}">Add new</button>
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                <Experience
-                    v-for="workExperience in workExperiences" 
-                    :key="workExperience.id"
-                    :work-experience="workExperience"
-                    @click="{isWorkExperienceModal= true; isEditWorkExperienceModal = true; editWorkExperience = workExperience}"
-                />
-            </div>
-        </div>
-        <!-- Product -->
-        <div class="box">
-            <div class="box-header">
-                <p class="title">Products</p>
-                <button class="btn" @click="isCreateUserProductModal = true">Add new</button>
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                <Product 
-                    v-for="product in products"
-                    :key="product.id"
-                    @click="{isUpdateUserProductModal = true; editProduct = product}" 
-                    :product="product"
-                />
-            </div>
-        </div>
+        </template>
     </div>
     <!-- Modal -->
     <AssignTechUserModal 
@@ -342,6 +338,15 @@
         min-height: 100%;
         padding: 12px 21px;
         background-color: rgb(245, 245, 245);
+    }
+    .page-loading {
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 600;
+        color: #555;
     }
     .avatar-box{
         display: flex;
