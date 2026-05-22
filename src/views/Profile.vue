@@ -25,6 +25,7 @@
         Tech as TechType, 
         UserEducation as EducationType, 
         UserWorkExperience as WorkExperienceType ,
+        UserProduct as ProductType
     } from "@type/entities";
 
     import { getAccount, updateAccount } from "@services/accountService";
@@ -32,6 +33,7 @@
     import { getUserTechs } from "@services/techService";
     import { getUserEducation } from "@services/educationService";
     import { getUserWorkExperience } from "@services/workExperienceService";
+    import { getUserProduct } from "@services/productService";
 
     import { useUserStore } from "@stores/useUserStore";
 
@@ -108,40 +110,32 @@
     const workExperiences = ref<WorkExperienceType[]>([])
     const editWorkExperience = ref<WorkExperienceType | undefined>()
 
+    // User Product
+    const products = ref<ProductType[]>([])
+    const editProduct = ref<ProductType | undefined>()
+
     const fetchData = async () =>{
         try {
-            const [userRes, toolRes, techRes, educationRes, workExperienceRes] = await Promise.all([
+            const [userRes, toolRes, techRes, educationRes, workExperienceRes, productRes] = await Promise.all([
                 getAccount(),
                 getUserTools(),
                 getUserTechs(),
                 getUserEducation(),
                 getUserWorkExperience(),
+                getUserProduct()
             ])
             user.value = userRes.data
             tools.value = toolRes.data
             techs.value = techRes.data
             educations.value = educationRes.data
             workExperiences.value = workExperienceRes.data
+            products.value = productRes.data
         } catch (error:any) {
-            console.log(error.response?.data?.message)
             toast.error(error.response?.data?.message || "get account fail")
         }
     }
 
     onMounted(fetchData)
-
-    // 
-    const product = {
-        id:'', 
-        name: 'product', 
-        description:'description....', 
-        task:'task....', image:'http://...',
-        startDate: '', 
-        endDate: '', 
-        userId:'e01', 
-        productTechs:[{id:'p1', techId :'te1', name: 'java', icon:''},{id:'p2', techId :'te2', name: 'python', icon:''}],
-        productLinks: [{ id:'r1', title: 'title', url: 'http://' }]
-    } as UserProduct
 
 
 </script>
@@ -197,11 +191,10 @@
             <div style="display: flex; flex-wrap: wrap; gap:12px;">
                 <Tech
                     is-tool
-                    allow-unassign
+                    allow-unassign-user
                     v-for="tool in tools" 
                     :key="tool.id"
                     :item="tool"
-                    @click="{isTechModal= true;}"
                     v-model="tools"
                 />
             </div>
@@ -214,11 +207,10 @@
             </div>
             <div style="display: flex; flex-wrap: wrap; gap:12px;">
                 <Tech
-                    allow-unassign
+                    allow-unassign-user
                     v-for="tech in techs" 
                     :key="tech.id"
                     :item="tech"
-                    @click="{isTechModal= true;}"
                     v-model="techs"
                 />
             </div>
@@ -260,7 +252,12 @@
                 <button class="btn" @click="isCreateUserProductModal = true">Add new</button>
             </div>
             <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                <Product @click="isUpdateUserProductModal = true" />
+                <Product 
+                    v-for="product in products"
+                    :key="product.id"
+                    @click="{isUpdateUserProductModal = true; editProduct = product}" 
+                    :product="product"
+                />
             </div>
         </div>
     </div>
@@ -281,11 +278,13 @@
     <CreateUserProductModal 
         :open="isCreateUserProductModal" 
         @close="isCreateUserProductModal = false"
+        v-model:products="products"
     />
     <UpdateUserProductModal 
         :open="isUpdateUserProductModal" 
         @close="isUpdateUserProductModal = false"
-        :product="product" 
+        v-model:products="products"
+        :product="editProduct" 
     />
     <UpdateOrCreateEducationModal 
         :open="isEducationModal"  

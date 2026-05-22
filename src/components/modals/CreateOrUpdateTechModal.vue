@@ -71,7 +71,11 @@
             }
         }else{
             try {
-                if (!techForm.value.icon) return
+                if (!techForm.value.icon){
+
+                    toast.error("Icon is required")
+                    return
+                }
                 const res = await createTech({
                     name: techForm.value.name,
                     icon: techForm.value.icon
@@ -109,6 +113,7 @@
             if (isEditing &&  tech) {
                 currentTech.value = { ...tech }
                 techForm.value.name = tech.name
+                errors.value = ""
             }else {
                 currentTech.value = {
                     id: '',
@@ -119,6 +124,7 @@
                     name: '',
                     icon: undefined
                 }
+                errors.value = ""
             }
         },
         { immediate: true }

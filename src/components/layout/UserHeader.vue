@@ -26,7 +26,7 @@
     .header{
         position: sticky;
         top:0;
-        z-index:1000;
+        z-index:100;
         display:flex;
         align-items:center;
         border-bottom:1px solid gray;
