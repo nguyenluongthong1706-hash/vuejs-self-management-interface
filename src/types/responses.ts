@@ -25,6 +25,13 @@ export interface UpdateAccountResponse{
     data : User
 }
 
+
+export interface UploadAvatarResponse{
+    message : string
+    data : User
+}
+
+
 // tool response
 export interface GetToolsResponse{
     message : string

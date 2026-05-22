@@ -15,7 +15,7 @@
         <div class="header-info">
             <p>{{route.name }}</p>
             <div class="user-info">
-                <img v-if="userStore.user?.avatar" :src="userStore.user?.avatar" alt="">
+                <img class="avatar" v-if="userStore.user?.avatar" :src="userStore.user?.avatar" alt="">
                 <div v-else class="avatar avatar-fallback">NT</div>
                 <p>{{ userStore.user?.name }}</p>
             </div>
@@ -54,8 +54,8 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        width: 30px;
-        height: 30px;
+        width: 60px;
+        height: 60px;
         border-radius: 100%;
         margin-right: 15px;
     }

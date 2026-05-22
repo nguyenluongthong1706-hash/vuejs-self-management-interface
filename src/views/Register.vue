@@ -35,10 +35,10 @@
 <template>
     <form class="auth-form">
         <h1 class="auth-title">Register</h1>
-        <Input :error="errors?.name" label="Name" placeholder="Nguyen Van B" v-model="registerRequest.name"/>
-        <Input :error="errors?.email" type="email" label="Email" placeholder="user@gmail.com" v-model="registerRequest.email"/>
-        <Input :error="errors?.password" type="password" label="Password" placeholder="..." v-model="registerRequest.password"/>
-        <Input :error="errors?.passwordConfirmation" type="password" label="Confirm password" placeholder="..." v-model="registerRequest.passwordConfirmation"/>
+        <Input :error="errors?.name?.[0]" label="Name" placeholder="Nguyen Van B" v-model="registerRequest.name"/>
+        <Input :error="errors?.email?.[0]" type="email" label="Email" placeholder="user@gmail.com" v-model="registerRequest.email"/>
+        <Input :error="errors?.password?.[0]" type="password" label="Password" placeholder="..." v-model="registerRequest.password"/>
+        <Input :error="errors?.passwordConfirmation?.[0]" type="password" label="Confirm password" placeholder="..." v-model="registerRequest.passwordConfirmation"/>
         <div class="btn-group">
             <button class="btn" type="button" @click="handleSubmit">Login</button>
         </div>

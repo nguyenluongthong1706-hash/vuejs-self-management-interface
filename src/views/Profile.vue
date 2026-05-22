@@ -19,7 +19,6 @@
     import Product from "@components/sections/Product.vue";
 
     import type { 
-        UserProduct, 
         User, 
         Tool as ToolType, 
         Tech as TechType, 
@@ -28,7 +27,7 @@
         UserProduct as ProductType
     } from "@type/entities";
 
-    import { getAccount, updateAccount } from "@services/accountService";
+    import { getAccount, updateAccount, uploadAvatar } from "@services/accountService";
     import { getUserTools } from "@services/toolService";
     import { getUserTechs } from "@services/techService";
     import { getUserEducation } from "@services/educationService";
@@ -50,7 +49,10 @@
     const isEditWorkExperienceModal = ref<boolean>(false)
 
     // user
+    const fileInput = ref<HTMLInputElement | null>(null)
+    
     const userFormError = ref<any>()
+    
     const user = ref<User>({
         id: '',
         name: '',
@@ -93,6 +95,34 @@
         } catch (error: any) {
             userFormError.value = error.response?.data?.errors
             toast.error(error.response?.data?.message)
+        }
+    }
+
+    const handleChooseAvatar = () => {
+        fileInput.value?.click()
+    }
+
+    const handleUploadAvatar = async (event: Event) => {
+        const target = event.target as HTMLInputElement
+
+        if (!target.files || target.files.length === 0) return
+
+        const file = target.files[0]
+
+        try {
+            if(!file) return
+            const res = await uploadAvatar({
+                avatar: file
+            })
+
+            user.value = res.data
+
+            userStore.updateUser(user.value)
+            
+            toast.success(res.message)
+        }
+        catch (error: any) {
+           toast.error(error.response?.data?.message || "get account fail")
         }
     }
 
@@ -142,11 +172,17 @@
 <template>
     <div class="profile-container">
         <div class="avatar-box">
-            <img class="avatar" :src="logo" alt="">
+            <img class="avatar" :src="user.avatar || logo" alt="">
+
             <div class="profile-action">
-                <button>action1</button>
-                <button>action2</button>
-                <button>action3</button>
+                <button @click="handleChooseAvatar">Upload</button>
+                <input
+                    ref="fileInput"
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    @change="handleUploadAvatar"
+                >
             </div>
         </div>
         <!-- Basic Information -->
@@ -309,26 +345,28 @@
     }
     .avatar-box{
         display: flex;
-        justify-content:space-around;
         align-items: center;
+        gap: 20px;
         margin: 12px 0;
     }
     .avatar{
         width: 150px;
         height: 150px;
         border-radius: 100%;
-        border: 3px solid white;
-        object-fit:contain;
+        object-fit: contain;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     .profile-action{
         display: flex;
         flex-direction: column;
-        padding: 12px 45px;
-        gap:15px;
+        gap: 10px;
     }
     .profile-action button{
-        background: gainsboro;
+        background: #3b82f6;
+        color: white;
         padding: 6px 15px;
+        border: none;
         border-radius: 12px;
         cursor: pointer;
     }
