@@ -1,5 +1,5 @@
 <script setup lang="ts">
-    import { ref, watch, onMounted, computed } from 'vue';
+    import { ref, watch, onMounted, computed, type Ref } from 'vue';
     import { useToast } from 'vue-toastification';
 
     import BaseModal from '@components/ui/modal/BaseModal.vue';
@@ -8,10 +8,21 @@
     import Tech from '@components/sections/Tech.vue';
 
     import type { UserProduct, ProductLink, ProductTech, Tech as TechType } from '@type/entities';
+    import type { FormErrors } from "@type/responses"
+    import type { UpdateProductRequest } from '@type/requests'
 
     import { getTechs } from '@services/techService';
 
-    import { updateProduct, deleteProduct, assignTechs, unassignProductTech, createProductLink, updateProductLink, deleteProductLink } from '@services/productService';
+    import { 
+        updateProduct, 
+        deleteProduct, 
+        assignTechs, 
+        unassignProductTech, 
+        createProductLink, 
+        updateProductLink, 
+        deleteProductLink 
+    } 
+    from '@services/productService';
 
     const products = defineModel<UserProduct[]>('products',{default: []})
 
@@ -29,10 +40,19 @@
     const showTechForm = ref<boolean>(false)
     const showLinkForm = ref<boolean>(false)
 
-    const productErrors = ref<any>()
-    const techErrors = ref<any>()
-    const linkErrors = ref<any>()
-    const linkEditErrors = ref<Record<string, any>>({})
+    const isUpdateProductLoading = ref(false)
+    const isDeleteProductLoading = ref(false)
+    const isAssignTechLoading = ref(false)
+    const isAddLinkLoading = ref(false)
+
+    const updatingLinkIds = ref<string[]>([])
+    const deletingLinkIds = ref<string[]>([])
+    const unassignTechIds = ref<string[]>([])
+
+    const productErrors = ref<FormErrors>({})
+    const techErrors = ref<FormErrors>({})
+    const linkErrors = ref<FormErrors>({})
+    const linkEditErrors = ref<Record<string, FormErrors>>({})
 
     const productForm =  ref<{
         name: string
@@ -62,12 +82,25 @@
 
     const techs = ref<TechType[]>([])
 
+    const setIdLoading = (list: Ref<string[]>, id: string, loading: boolean) => {
+        if (loading) {
+            if (!list.value.includes(id)) {
+                list.value.push(id)
+            }
+        } else {
+            list.value = list.value.filter(itemId => itemId !== id)
+        }
+    }
+
     const handleEditProduct = async () => {
-        productErrors.value = ""
+        if (isUpdateProductLoading.value) return
         if (!props.product) return
 
         try {
-            let payload = productForm.value;
+            isUpdateProductLoading.value = true
+            productErrors.value = {}
+
+            let payload: UpdateProductRequest = productForm.value;
             if (!productForm.value.image) {
                 const { image, ...rest } = productForm.value;
                 payload = rest;
@@ -90,12 +123,17 @@
                 error.response?.data?.message ??
                 'Update product fail'
             )
+        }finally {
+            isUpdateProductLoading.value = false
         }
     }
 
     const handleDeleteProduct = async () => {
+        if (isDeleteProductLoading.value) return
         if(!props.product) return
+
         try {
+            isDeleteProductLoading.value = true
             const res = await deleteProduct(props.product.id)
 
             products.value = products.value.filter(currentProduct => currentProduct.id != props.product?.id)
@@ -103,12 +141,15 @@
             toast.success(res.message)
         } catch (error: any) {
             toast.error(error.response?.data?.message)
+        } finally {
+            isDeleteProductLoading.value = false
         }
     }
 
     const handleAssignTechs = async () => {
-        techErrors.value = ""
+        if (isAssignTechLoading.value) return
         if(!props.product) return
+
         const validSelectedIds = selectedTechIds.value.filter(idValue => {
             const matchedOption = techOptions.value.find(
                 option => option.key === idValue
@@ -117,6 +158,8 @@
             return matchedOption ? !matchedOption.disabled : false
         })
         try {
+            isAssignTechLoading.value = true
+            techErrors.value = {}
             const techAssignments: { techId: string }[] =
                 validSelectedIds.map(idValue => ({
                     techId: idValue
@@ -152,12 +195,18 @@
             techErrors.value = error.response?.data?.errors
             toast.error(error.response?.data?.message)
             
+        }finally {
+            isAssignTechLoading.value = false
         }
     }
 
     const handleUnassignTech = async (id: string)=>{
+        if (unassignTechIds.value.includes(id)) return
+        if (!props?.product) return
+
         try {
-            if (!props?.product) return
+            setIdLoading(unassignTechIds, id, true)
+
             const res = await unassignProductTech(props.product?.id, id)
 
             productTechs.value = productTechs.value?.filter(itemValue => 
@@ -180,15 +229,19 @@
             toast.success(res.message)
         } catch (error: any) {
             toast.error(error.response?.data?.message)
+        }finally {
+            setIdLoading(unassignTechIds, id, false)
         }
     }
 
     const handleAddLink = async ()=>{
-        linkErrors.value = ""
+        if (isAddLinkLoading.value) return
         if(!props.product) return
+
         try {
+            isAddLinkLoading.value = true
+            linkErrors.value = {}
             const res = await createProductLink(props.product.id, newProductLink.value)
-            console.log(res.data)
 
             const index = products.value?.findIndex(currentProduct => currentProduct.id === props.product?.id)
 
@@ -199,6 +252,7 @@
             if (!product) return
 
             product.productLinks.push(res.data)
+            productLinks.value = product.productLinks
             toast.success(res.message)
 
             newProductLink.value.title = ""
@@ -207,13 +261,20 @@
         } catch (error: any) {
             linkErrors.value = error.response?.data?.errors
             toast.error(error.response?.data?.message)
+        } finally {
+            isAddLinkLoading.value = false
         }
     }
 
     const handleUpdateLink = async (currentProductLink: ProductLink)=>{
-        linkEditErrors.value = {}
+        if (updatingLinkIds.value.includes(currentProductLink.id)) return
+
         if(!props.product) return
+
         try {
+            setIdLoading(updatingLinkIds, currentProductLink.id, true)
+            linkEditErrors.value[currentProductLink.id] = {}
+
             const res = await updateProductLink(currentProductLink.id, 
                  {
                     title: currentProductLink.title,
@@ -244,12 +305,17 @@
         } catch (error: any) {
             linkEditErrors.value[currentProductLink.id] =error.response?.data?.errors
             toast.error(error.response?.data?.message)
+        }finally {
+            setIdLoading(updatingLinkIds, currentProductLink.id, false)
         }
     }
 
     const handleDeleteLink = async (id: string)=>{
+        if (deletingLinkIds.value.includes(id)) return
         if(!props.product) return
+
         try {
+            setIdLoading(deletingLinkIds, id, true)
             const res = await deleteProductLink(id)
 
             productLinks.value = productLinks.value.filter(
@@ -271,6 +337,8 @@
             toast.success(res.message)
         } catch (error: any) {
             toast.error(error.response?.data?.message)
+        } finally {
+            setIdLoading(deletingLinkIds, id, false)
         }
     }
 
@@ -286,7 +354,7 @@
 
     onMounted(fetchTechs)
 
-    const techOptions = computed(() =>
+    const techOptions = computed<{key: string;value: string;disabled?: boolean}[]>(() =>
         techs.value.map(tech => ({
             key: tech.id,
             value: tech.name,
@@ -317,10 +385,20 @@
 
                 showTechForm.value = false
                 showLinkForm.value = false
-                productErrors.value = ""
-                techErrors.value = ""
-                linkErrors.value = ""
-                linkErrors.value = ""
+                
+                productErrors.value = {}
+                techErrors.value = {}
+                linkErrors.value = {}
+                linkEditErrors.value = {}
+
+                isUpdateProductLoading.value = false
+                isDeleteProductLoading.value = false
+                isAssignTechLoading.value = false
+                isAddLinkLoading.value = false
+
+                updatingLinkIds.value = []
+                deletingLinkIds.value = []
+                unassignTechIds.value = []
             }
         },
         { immediate: true }
@@ -338,8 +416,12 @@
         <Input :error="productErrors?.startDate?.[0]" label="Start date" type="date" v-model="productForm.startDate"/>
         <Input :error="productErrors?.endDate?.[0]" label="End date" type="date" v-model="productForm.endDate"/>
         <div style="display: flex; gap: 12px">
-            <button class="btn" @click="handleEditProduct">Edit product</button>
-            <button class="btn" @click="handleDeleteProduct">Delete product</button>
+            <button class="btn" :disabled="isUpdateProductLoading" @click="handleEditProduct">
+                 {{ isUpdateProductLoading ? "Loading..." : "Edit product" }}
+            </button>
+            <button class="btn" :disabled="isDeleteProductLoading" @click="handleDeleteProduct">
+                {{ isDeleteProductLoading ? "Deleting..." : "Delete product" }}
+            </button>
         </div>
         <!-- Tech of Product -->
         <div class="section">
@@ -357,7 +439,9 @@
                         :options="techOptions"
                     />
                 </div>
-                <button class="btn" @click="handleAssignTechs">Assign</button>
+                <button class="btn" :disabled="isAssignTechLoading" @click="handleAssignTechs">
+                    {{ isAssignTechLoading ? "Loading..." : "Assign Techs" }}
+                </button>
             </div>
             <div style="display: flex; flex-wrap: wrap; gap:12px; margin: 6px 0;">
                 <Tech 
@@ -368,6 +452,7 @@
                     @unassigned="handleUnassignTech"
                     :item="tech"
                     :product-id="props.product?.id"
+                    :loading="unassignTechIds.includes(tech.id)"
                 />
             </div>
         </div>
@@ -380,15 +465,21 @@
             <div class="section-form" v-if="showLinkForm">
                 <Input :error="linkErrors?.title?.[0]" label="Title" placeholder="live Demo" v-model="newProductLink.title"/>
                 <Input :error="linkErrors?.url?.[0]" label="Link" placeholder="http://..." v-model="newProductLink.url"/>
-                <button class="btn" @click="handleAddLink">Add new</button>
+                <button class="btn" :disabled="isAddLinkLoading" @click="handleAddLink">
+                    {{ isAddLinkLoading ? "Loading..." : "Add new" }}
+                </button>
             </div>
             <div style="display: flex; flex-wrap: wrap; gap:12px; margin: 6px 0;">
                 <div class="url-item" v-for="(productLink, index) in productLinks" :key="index">
                     <div class="row-header">
                         <h4>Url {{ index + 1 }}</h4>
                         <div style="display:flex; gap:10px">
-                            <button @click="handleUpdateLink(productLink)">Edit</button>
-                            <button @click="handleDeleteLink(productLink.id)">Delete</button>
+                            <button :disabled="updatingLinkIds.includes(productLink.id)" @click="handleUpdateLink(productLink)">
+                                {{ updatingLinkIds.includes(productLink.id) ? "Loading..." : "Edit" }}
+                            </button>
+                            <button :disabled="deletingLinkIds.includes(productLink.id)" @click="handleDeleteLink(productLink.id)">
+                                {{ deletingLinkIds.includes(productLink.id) ? "Deleting..." : "Delete" }}
+                            </button>
                         </div>
                     </div>
                     <Input :error="linkEditErrors?.[productLink.id]?.title?.[0]" label="Title" placeholder="live Demo" v-model="productLink.title"/>

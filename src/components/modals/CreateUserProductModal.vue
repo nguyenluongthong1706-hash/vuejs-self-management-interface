@@ -7,6 +7,9 @@
     import Textarea from '@components/ui/textarea/Textarea.vue';
 
     import type { Tech, UserProduct } from '@type/entities';
+    import type { FormErrors } from "@type/responses"
+    import type { CreateProductRequest } from '@type/requests'
+
     import { getTechs } from '@services/techService';
     import { createProduct } from '@services/productService';
 
@@ -22,7 +25,8 @@
         (e : 'close') : void
     }>()
 
-    const errors = ref<any>()
+    const isSubmitLoading = ref(false)
+    const errors = ref<FormErrors>()
         
     const productForm =  ref<{
         name: string
@@ -48,7 +52,7 @@
 
     const techs = ref<Tech[]>([])
 
-    let techOptions = computed(()=>{
+    const techOptions = computed< {key: string; value: string}[]>(()=>{
         return techs.value.map(tech => ({ key: tech.id,value: tech.name}))
     })
 
@@ -61,6 +65,8 @@
     }
 
     const handleSubmit = async ()=>{
+        if (isSubmitLoading.value) return
+
         const image = productForm.value.image
 
         if (!image) {
@@ -68,7 +74,8 @@
             return
         }
         try {
-            const payload = {
+            isSubmitLoading.value = true
+            const payload: CreateProductRequest = {
                 ...productForm.value,
                 image,
                 techs : selectedTechIds.value.map(id => ({
@@ -83,9 +90,9 @@
             emit('close')
         } catch (err:any) {
             errors.value = err.response?.data?.errors
-            console.log(err.response?.data?.errors)
-            console.log(errors.value)
             toast.error(err.response?.data?.message)
+        }finally {
+            isSubmitLoading.value = false
         }
     }
 
@@ -114,7 +121,7 @@
                 productForm.value.links= [{ title: '', url: '' }]
                 productForm.value.techs=[]
 
-                errors.value = ""
+                errors.value = {}
             }
         },
         { immediate: true }
@@ -150,7 +157,9 @@
             <button class="btn" @click="addUrl">Add new button</button>
         </div>
         <div>
-            <button class="btn" @click="handleSubmit">Submit</button>
+            <button class="btn" :disabled="isSubmitLoading" @click="handleSubmit">
+                {{ isSubmitLoading ? "Loading..." : "Submit" }}
+            </button>
         </div>
     </BaseModal>
 </template>
