@@ -30,8 +30,8 @@
 <template>
     <form class="auth-form">
         <h1 class="auth-title">Login</h1>
-        <Input :error="errors?.email" type="email" label="Email" placeholder="user@gmail.com" v-model="loginRequest.email"/>
-        <Input :error="errors?.password" type="password" label="Password" placeholder="..." v-model="loginRequest.password"/>
+        <Input :error="errors?.email?.[0]" type="email" label="Email" placeholder="user@gmail.com" v-model="loginRequest.email"/>
+        <Input :error="errors?.password?.[0]" type="password" label="Password" placeholder="..." v-model="loginRequest.password"/>
         <div class="btn-group">
             <button class="btn" type="button" @click="handleSubmit">Login</button>
         </div>

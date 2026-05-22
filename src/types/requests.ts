@@ -27,6 +27,10 @@ export interface UpdateAccountRequest{
     location : Location
 }
 
+export interface UploadAvatarRequest{
+    avatar: File
+}
+
 
 export interface CreateToolRequest{
     name: string
